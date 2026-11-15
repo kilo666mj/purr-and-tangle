@@ -13,18 +13,32 @@ capture() {
 }
 case "${1:-solo}" in
   solo) capture --showcase ;;
+  yarn)
+    capture --showcase
+    capture --showcase --vertical-pair
+    capture --versus-showcase
+    ;;
   versus)
     capture --versus-showcase
     capture --versus-lobby
     capture --versus-showcase --versus-pause
     ;;
+  outcomes)
+    capture --won-showcase
+    capture --lost-showcase
+    capture --versus-showcase --versus-result
+    ;;
   all)
     capture --showcase
+    capture --showcase --vertical-pair
     capture --title-showcase
     capture --versus-showcase
     capture --versus-lobby
     capture --versus-showcase --versus-pause
+    capture --won-showcase
+    capture --lost-showcase
+    capture --versus-showcase --versus-result
     ;;
-  *) printf 'Usage: bash scripts/preview.sh [solo|versus|all]\n' >&2; exit 2 ;;
+  *) printf 'Usage: bash scripts/preview.sh [solo|versus|outcomes|yarn|all]\n' >&2; exit 2 ;;
 esac
 printf 'Screenshots saved under artifacts/\n'

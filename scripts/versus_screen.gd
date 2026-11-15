@@ -73,6 +73,20 @@ func show_menu(next_mode: String) -> void:
 		cta = "Play round %d" % (match_state.round_number + 1)
 	host.make_label("PURR & TANGLE · LOCAL VERSUS", 14, column)
 	host.make_label(heading, 25, column)
+	if mode == "result":
+		var portraits := HBoxContainer.new()
+		portraits.add_theme_constant_override("separation", 18)
+		column.add_child(portraits)
+		for slot in range(2):
+			var player := VBoxContainer.new()
+			player.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			portraits.add_child(player)
+			var won := match_state.result == slot + 1
+			var tied := match_state.result == MatchState.Result.DRAW
+			# A simultaneous rescue and a simultaneous blocked basket are both ties.
+			var rescued: bool = match_state.players[slot].board.phase == Board.Phase.WON
+			add_outcome_art(player, "won" if won or (tied and rescued) else "lost", 170.0)
+			host.make_label("P%d · %s" % [slot + 1, "Tie" if tied else ("Winner" if won else "Next time!")], 15, player)
 	host.make_label(copy, 17, column)
 	host.make_label("P1: %s\nP2: %s" % [inputs.label(0), inputs.label(1)], 16, column)
 	var primary: Button = host.make_button(cta, Vector2.ZERO, Vector2(490, 46), begin_round, column)
@@ -100,7 +114,7 @@ func show_menu(next_mode: String) -> void:
 		button.focus_neighbor_bottom = button.get_path_to(options[(i + 1) % options.size()])
 		button.focus_previous = button.focus_neighbor_top
 		button.focus_next = button.focus_neighbor_bottom
-	modal.position = Vector2(287, 105 if mode == "pause" else 180)
+	modal.position = Vector2(287, 90 if mode == "result" else (105 if mode == "pause" else 180))
 	modal.size = Vector2(526, 0)
 	modal.show()
 	shade.show()
@@ -278,6 +292,8 @@ func _draw() -> void:
 		card(Rect2(443, y, 214, 138), Color("d7b98b"))
 		text_at("P%d · NEXT HELPERS" % (i + 1), Vector2(462, y + 29), 14, INK)
 		var pair: Array = match_state.players[i].board.next_pair
+		if pair.size() == 2:
+			draw_yarn_link(Vector2(501, y + 88), Vector2(595, y + 88), 76.0)
 		for j in range(pair.size()):
 			draw_piece(Vector2(501 + j * 94, y + 88), pair[j], false, 76)
 	text_at("FIRST TO CLEAR", Vector2(479, 546), 14, INK)

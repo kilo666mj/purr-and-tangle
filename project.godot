@@ -2,6 +2,7 @@ config_version=5
 
 [application]
 config/name="Purr & Tangle"
+config/version="0.1.0"
 config/icon="res://assets/renders/cat_orange.png"
 boot_splash/image="res://assets/ui/boot_splash.png"
 boot_splash/bg_color=Color(0.956863, 0.937255, 0.87451, 1)

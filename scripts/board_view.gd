@@ -86,7 +86,7 @@ func _draw() -> void:
 					for dir in [Vector2i.RIGHT, Vector2i.DOWN]:
 						var other: Variant = session.board.at(pos + dir)
 						if other != null and other.bond == cell.bond:
-							draw_line(center, piece_center(pos + dir), Color("f3dfb4"), 7, true)
+							draw_yarn_link(center, piece_center(pos + dir))
 				var pulse := 1.0
 				if session.board.matches.has(pos):
 					draw_circle(center, CELL * 0.48, Color("f3dc8f"))
@@ -103,7 +103,7 @@ func _draw() -> void:
 			positions = active_visual
 		var first := BOARD_ORIGIN + (Vector2(positions[0]) + Vector2.ONE * 0.5) * CELL
 		var second := BOARD_ORIGIN + (Vector2(positions[1]) + Vector2.ONE * 0.5) * CELL
-		draw_line(first, second, Color("fff2d1"), 8, true)
+		draw_yarn_link(first, second)
 		for i in range(2):
 			var center := BOARD_ORIGIN + (Vector2(positions[i]) + Vector2.ONE * 0.5) * CELL
 			draw_piece(center, session.board.active.colors[i], false, CELL)

@@ -7,9 +7,11 @@ const BOARD_ORIGIN := Vector2(377, 130)
 const BoardView = preload("res://scripts/board_view.gd")
 const VersusScreen = preload("res://scripts/versus_screen.gd")
 const Difficulty = preload("res://scripts/difficulty.gd")
+const CatCompanion = preload("res://scripts/cat_companion.gd")
 
 var session := Session.new()
 var board_view := BoardView.new()
+var companion := CatCompanion.new()
 var versus: Control
 var solo_controls: Array = []
 var ui := Control.new()
@@ -43,6 +45,8 @@ func _ready() -> void:
 			if not ResourceLoader.exists(path):
 				path = "res://assets/sprites/" + key + ".png"
 			textures[key] = load(path)
+	for outcome in ["success", "failure"]:
+		textures["cat_" + outcome] = load("res://assets/ui/cat_" + outcome + ".png")
 	load_settings()
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--seed="):
@@ -55,6 +59,11 @@ func _ready() -> void:
 	board_view.position = BOARD_ORIGIN
 	board_view.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	ui.add_child(board_view)
+	companion.textures = textures
+	companion.position = Vector2(62, 262)
+	companion.size = Vector2(225, 225)
+	companion.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	ui.add_child(companion)
 	make_button("Pause  ·  Esc / Start", Vector2(766, 543), Vector2(278, 46), toggle_pause)
 	mute_button = make_button("", Vector2(766, 600), Vector2(278, 42), toggle_mute)
 	motion_button = make_button("", Vector2(766, 651), Vector2(278, 42), toggle_motion)
@@ -93,6 +102,7 @@ func _ready() -> void:
 	)
 	session.difficulty = difficulty
 	session.start()
+	companion.reset(session.board)
 	show_menu("title")
 	resized.connect(update_layout)
 	update_layout()
@@ -100,6 +110,8 @@ func _ready() -> void:
 	if OS.get_cmdline_user_args().has("--showcase"):
 		start_game()
 		session.board.active.anchor = Vector2i(3, 5)
+		if OS.get_cmdline_user_args().has("--vertical-pair"):
+			session.board.active.offset = Vector2i.DOWN
 		session.paused = true
 	if OS.get_cmdline_user_args().has("--versus-showcase"):
 		start_versus()
@@ -114,6 +126,14 @@ func _ready() -> void:
 		start_versus()
 	if OS.get_cmdline_user_args().has("--versus-pause"):
 		versus.show_menu("pause")
+	for outcome in ["won", "lost"]:
+		if OS.get_cmdline_user_args().has("--" + outcome + "-showcase"):
+			session.board.phase = Board.Phase.WON if outcome == "won" else Board.Phase.LOST
+			show_menu(outcome)
+	if OS.get_cmdline_user_args().has("--versus-result"):
+		versus.match_state.result = versus.MatchState.Result.PLAYER_ONE
+		versus.match_state.wins = [1, 0]
+		versus.show_menu("result")
 	if OS.get_cmdline_user_args().has("--screenshot"):
 		capture.call_deferred()
 
@@ -127,6 +147,13 @@ func capture() -> void:
 		filename = "versus-pause"
 	elif OS.get_cmdline_user_args().has("--title-showcase"):
 		filename = "title"
+	for outcome in ["won", "lost"]:
+		if OS.get_cmdline_user_args().has("--" + outcome + "-showcase"):
+			filename = outcome
+	if OS.get_cmdline_user_args().has("--versus-result"):
+		filename = "versus-result"
+	if OS.get_cmdline_user_args().has("--vertical-pair"):
+		filename = "gameplay-vertical"
 	var result := shot.save_png("res://artifacts/%s.png" % filename)
 	if result != OK:
 		push_error("Could not save screenshot")
@@ -211,6 +238,8 @@ func show_menu(kind: String) -> void:
 		cta = "Try again"
 	make_label("PURR & TANGLE", 15, column)
 	make_label(heading, 27, column)
+	if kind in ["won", "lost"]:
+		add_outcome_art(column, kind)
 	make_label(copy, 18, column)
 	make_button(cta, Vector2.ZERO, Vector2(450, 49), menu_primary, column)
 	if kind == "title":
@@ -244,7 +273,7 @@ func show_menu(kind: String) -> void:
 		button.focus_neighbor_bottom = button.get_path_to(options[(i + 1) % options.size()])
 		button.focus_next = button.focus_neighbor_bottom
 		button.focus_previous = button.focus_neighbor_top
-	menu.position.y = 65 if kind == "pause" else 160
+	menu.position.y = 65 if kind == "pause" or kind in ["won", "lost"] else 160
 	menu.size = Vector2(514, 450)
 	focus_primary.call_deferred()
 	queue_redraw()
@@ -257,6 +286,7 @@ func menu_primary() -> void:
 		"won":
 			session.start(session.board.level + 1, session.board.score)
 			board_view.reset()
+			companion.reset(session.board)
 			resume_game()
 
 
@@ -264,6 +294,7 @@ func start_game() -> void:
 	session.difficulty = difficulty
 	session.start()
 	board_view.reset()
+	companion.reset(session.board)
 	resume_game()
 
 
@@ -325,6 +356,8 @@ func _process(delta: float) -> void:
 		return
 	board_view.reduced_motion = reduced_motion
 	board_view.show_patterns = show_patterns
+	companion.reduced_motion = reduced_motion
+	companion.queue_redraw()
 	board_view.queue_redraw()
 	if not menu_kind.is_empty():
 		queue_redraw()
@@ -354,6 +387,7 @@ func _process(delta: float) -> void:
 	if before == Board.Phase.CLEARING and after == Board.Phase.GRAVITY:
 		play_tone(520.0 + session.board.chain * 100.0, 0.12)
 	board_view.animate(delta, before)
+	companion.advance(delta, session.board, session.paused)
 	if after in [Board.Phase.WON, Board.Phase.LOST]:
 		high_score = maxi(high_score, session.board.score)
 		save_settings()
@@ -375,7 +409,6 @@ func _draw() -> void:
 	text_at("Purr &", Vector2(46, 139), 48, INK, title_font)
 	text_at("Tangle", Vector2(46, 193), 48, INK, title_font)
 	text_at("A basket full of little rescues.", Vector2(49, 228), 16, MUTED)
-	draw_texture_rect(textures.get("cat_orange"), Rect2(62, 262, 225, 225), false)
 	card(Rect2(48, 500, 270, 234), Color("e5e9d9"))
 	text_at("MAKE ROOM FOR JOY", Vector2(70, 532), 13, MUTED)
 	text_at("Match four.", Vector2(70, 571), 27, INK, title_font)
@@ -396,6 +429,8 @@ func _draw() -> void:
 	card(Rect2(754, 376, 302, 143), Color("d7b98b"))
 	draw_line(Vector2(754, 414), Vector2(1056, 414), Color("b3956d"), 2)
 	text_at("NEXT LITTLE HELPERS", Vector2(778, 405), 13, INK)
+	if session.board.next_pair.size() == 2:
+		draw_yarn_link(Vector2(830, 468), Vector2(912, 468), 78.0)
 	for i in range(session.board.next_pair.size()):
 		draw_piece(Vector2(830 + i * 82, 468), session.board.next_pair[i], false, 78.0)
 	if session.board.chain > 1:
@@ -501,6 +536,7 @@ func cycle_difficulty() -> void:
 		session.difficulty = difficulty
 		session.start()
 		board_view.reset()
+		companion.reset(session.board)
 
 
 func focus_primary() -> void:

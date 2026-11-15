@@ -1,0 +1,33 @@
+Purr & Tangle
+=============
+
+A cozy falling-pair puzzle. Match four cats/yarn of one color in a straight
+line. Clear every yarn tangle to rescue the kittens. Choose solo or local
+two-player versus on the title screen. No engine installation or API keys
+are needed to play these builds.
+
+Windows: Extract the entire ZIP, then open Purr-and-Tangle.exe. Keep the .pck
+file beside the executable. This build is not Authenticode signed; Windows
+may show an unknown-publisher prompt.
+
+Linux: Extract the entire ZIP, then run ./Purr-and-Tangle. If your extraction
+tool removed executable permission, run chmod +x Purr-and-Tangle first.
+Keep the .pck file beside the executable. An OpenGL 3.3-capable driver is needed.
+
+macOS: Extract the ZIP and move Purr-and-Tangle.app to Applications. The
+universal app supports Intel and Apple Silicon. It is ad-hoc signed, not
+Apple-notarized. If macOS blocks the first launch, use System Settings >
+Privacy & Security > Open Anyway after checking the download source.
+See https://docs.godotengine.org/en/stable/tutorials/export/running_on_macos.html
+
+Solo: arrows/A-D move, up/W/X rotate, Z reverse, down/S soft drop,
+Space hard drop, Esc/P pause.
+Controller: D-pad/left stick move, A/B rotate, X hard drop, Start pause.
+Versus keyboard: P1 WASD/Q/E; P2 arrows/comma/period. Choose F1/F2 in the lobby.
+Controllers join with A. Each player needs a distinct controller or keyboard slot.
+
+Difficulty and accessibility settings and the best solo score are saved locally.
+Unfinished baskets and versus win tallies are not saved when you close the game.
+
+Source, license and issues: https://github.com/kilo666mj/purr-and-tangle
+Game license: MIT (LICENSE). Engine notices: THIRD_PARTY_NOTICES.txt.

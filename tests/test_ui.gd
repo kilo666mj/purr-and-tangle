@@ -88,14 +88,29 @@ func run() -> void:
 	await process_frame
 	joy(JOY_BUTTON_X, false)
 	expect(game.session.board.active.is_empty(), "Controller X hard-drops and locks the pair")
+	expect(game.companion.reaction == "drop", "Companion reacts to a controller hard drop")
+	game.toggle_pause()
+	var companion_time: float = game.companion.elapsed
+	await process_frame
+	expect(game.companion.elapsed == companion_time, "Pause freezes companion animation")
+	game.resume_game()
 	game.session.board.phase = game.Board.Phase.WON
 	await process_frame
 	expect(game.menu_kind == "won", "Winning shows the next-basket menu")
+	await process_frame
+	var win_cat: TextureRect = game.menu.find_child("OutcomeCat", true, false)
+	expect(win_cat != null and win_cat.texture == game.textures.cat_success, "Win menu displays the yarn-throwing cat")
+	expect(game.menu.position.y + game.menu.size.y <= 900, "Win art and controls fit the viewport")
+	expect(root.gui_get_focus_owner().text == "Next basket", "Outcome art preserves controller focus")
 	game.menu_primary()
 	expect(game.session.board.level == 2 and game.menu_kind.is_empty(), "Next basket continues the run")
 	game.session.board.phase = game.Board.Phase.LOST
 	await process_frame
 	expect(game.menu_kind == "lost", "Blocked board shows game over")
+	await process_frame
+	var loss_cat: TextureRect = game.menu.find_child("OutcomeCat", true, false)
+	expect(loss_cat != null and loss_cat.texture == game.textures.cat_failure, "Loss menu displays the tangled cat")
+	expect(game.menu.position.y + game.menu.size.y <= 900, "Loss art and controls fit the viewport")
 	game.menu_primary()
 	expect(game.session.board.level == 1 and game.session.board.score == 0, "Restart resets run state")
 	expect(game.mute_button.position.y + game.mute_button.size.y <= game.motion_button.position.y, "Settings buttons do not overlap")

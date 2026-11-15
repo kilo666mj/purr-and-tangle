@@ -9,6 +9,7 @@ __pycache__/
 meshy_output/
 .tools/
 artifacts/*.log
+artifacts/*.import
 .publish/
 .agents/
 .codex/

@@ -11,7 +11,7 @@ run_godot() {
   "$godot_bin" "$@" > "$check_log" 2>&1 || { cat "$check_log"; return 1; }
   cat "$check_log"
   # Godot can exit 0 even when a script fails to load.
-  if rg -q 'SCRIPT ERROR|Parse Error|Failed to load script' "$check_log"; then
+	if rg -q 'SCRIPT ERROR|Parse Error|Failed to load script|Invalid polygon data' "$check_log"; then
     return 1
   fi
 }
@@ -22,6 +22,7 @@ done
 run_godot --headless --path . --script tests/test_rules.gd
 run_godot --headless --path . --script tests/test_versus.gd
 run_godot --headless --path . --script tests/test_speed.gd
+run_godot --headless --path . --script tests/test_reactions.gd
 run_godot --headless --path . --script tests/test_ui.gd
 run_godot --headless --path . --script tests/test_versus_ui.gd
 run_godot --headless --path . --quit-after 10
