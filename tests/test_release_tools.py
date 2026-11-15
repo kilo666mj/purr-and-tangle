@@ -1,18 +1,45 @@
 import hashlib
 import json
+import os
 from pathlib import Path
 import stat
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 import zipfile
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
-from export_game import TARGETS, version_number, zip_folder
+from export_game import TARGETS, resolve_godot, version_number, zip_folder
 from publish_release import verify_archives
 
 
 class ReleaseTest(unittest.TestCase):
+    def test_windows_extensionless_action_alias(self):
+        with tempfile.TemporaryDirectory(prefix="engine path ") as directory:
+            root = Path(directory)
+            source = root / "godot"
+            source.write_bytes(b"MZ engine executable")
+            scratch = root / "build"
+            scratch.mkdir()
+            with patch.dict(os.environ, {"GODOT": str(source)}, clear=True), patch("export_game.sys.platform", "win32"):
+                executable = Path(resolve_godot(None, scratch))
+            self.assertEqual(executable, scratch / "godot.exe")
+            self.assertEqual(executable.read_bytes(), source.read_bytes())
+            self.assertTrue(source.exists())
+
+    def test_explicit_engine_overrides_environment(self):
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / "custom engine.exe"
+            source.write_bytes(b"MZ engine")
+            with patch.dict(os.environ, {"GODOT_BIN": "missing", "GODOT": "also missing"}):
+                self.assertEqual(resolve_godot(str(source), directory), str(source.resolve()))
+
+    def test_missing_engine_explains_configuration(self):
+        with patch("export_game.shutil.which", return_value=None):
+            with self.assertRaisesRegex(FileNotFoundError, "GODOT_BIN"):
+                resolve_godot("nonexistent-godot-for-test", ".")
+
     def test_version_rejects_paths_and_shell_text(self):
         self.assertEqual(version_number("v0.1.0"), "0.1.0")
         for value in ["../v1.0.0", "v1.0.0\nextra", "$(id)", "1.0.0", "v1.0"]:

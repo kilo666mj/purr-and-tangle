@@ -82,7 +82,9 @@ jobs:
         env:
           RELEASE_VERSION: ${{ needs.version.outputs.tag }}
           RELEASE_PLATFORM: ${{ matrix.platform }}
-        run: python scripts/export_game.py --platform "$RELEASE_PLATFORM" --version "$RELEASE_VERSION"
+        run: |
+          python -m unittest discover -s tests -p test_release_tools.py -v
+          python scripts/export_game.py --platform "$RELEASE_PLATFORM" --version "$RELEASE_VERSION"
         shell: bash
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:

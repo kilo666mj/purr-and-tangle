@@ -1,25 +1,10 @@
 {
-  "meshy": {
-    "ai_model": "meshy-t2.5",
-    "model_type": "smart-topology",
-    "texture_model": "meshy-n1",
-    "texture_resolution": "2k",
-    "target_polycount": 4000,
-    "target_formats": [
-      "glb"
-    ],
-    "total_credits": 90
-  },
   "assets": [
     {
       "name": "cat_orange",
       "source_image": "assets/sprites/cat_orange.png",
-      "image_tool": "built-in image_gen",
-      "prompt": "Use case: stylized-concept. Create a production game sprite and Meshy image-to-3D reference for Purr & Tangle: a single adorable orange tabby cat, full body, large round head, short rounded paws, compact pear body, tail curled against body, distinct dark terracotta stripes on forehead and sides, ivory muzzle, warm amber eyes. Front view with very slight three-quarter volume but both ears and all four feet clearly visible. Original premium cozy clay-toy 3D illustration, soft matte material, simple sculpted forms, gentle studio lighting, crisp readable silhouette at 48 pixels. Centered fills 85% of square canvas. Actual transparent background. Exactly one character, no accessories, no ground plane, no text, no border, no cast shadow beyond subject. Body and tail form a connected solid suitable for 3D modeling.",
       "reference_image": null,
       "model": "assets/models/cat_orange.glb",
-      "meshy_task_id": "01a1dfd7-92db-75a5-9d0c-2ea91a80b5f2",
-      "consumed_credits": 15,
       "triangles": 4157,
       "sha256": "b80e0de3d579ec5dca0bb810d590a0bdd797b1c9f103c5c6313b5080fb36e291",
       "render": "assets/renders/cat_orange.png"
@@ -27,12 +12,8 @@
     {
       "name": "cat_blue",
       "source_image": "assets/sprites/cat_blue.png",
-      "image_tool": "built-in image_gen",
-      "prompt": "Change the orange cat into a blue-gray sleepy cat, with dark indigo round spots on forehead, cheeks and sides instead of stripes, pale blue muzzle, soft half-closed eyes. Keep the exact clay toy style, full-body sitting pose, proportions, framing, connected curled tail, simple sculpted forms and transparent background. One character only, no text or ground shadow.",
       "reference_image": "assets/sprites/cat_orange.png",
       "model": "assets/models/cat_blue.glb",
-      "meshy_task_id": "01a1dfda-fc37-7638-afee-e90f0e57e0d8",
-      "consumed_credits": 15,
       "triangles": 3959,
       "sha256": "48a90f4c0cdb4f46784f08da213ffd6fc0de77f6bb54554101e6d3b9e20510e6",
       "render": "assets/renders/cat_blue.png"
@@ -40,12 +21,8 @@
     {
       "name": "cat_purple",
       "source_image": "assets/sprites/cat_purple.png",
-      "image_tool": "built-in image_gen",
-      "prompt": "Change the orange cat into a lavender purple mischievous cat, with dark violet bold zigzag markings on forehead and sides instead of stripes, ivory muzzle, playful raised eyebrow and tiny smile. Keep the exact clay toy style, full-body sitting pose, proportions, framing, connected curled tail, simple sculpted forms and transparent background. One character only, no text or ground shadow.",
       "reference_image": "assets/sprites/cat_orange.png",
       "model": "assets/models/cat_purple.glb",
-      "meshy_task_id": "01a1dfdb-062e-7038-88d8-40efff743cb5",
-      "consumed_credits": 15,
       "triangles": 3860,
       "sha256": "ca42c63d0da612d129b79ddedcde6477286818b9573489deed1d94ec438d624b",
       "render": "assets/renders/cat_purple.png"
@@ -53,12 +30,8 @@
     {
       "name": "yarn_orange",
       "source_image": "assets/sprites/yarn_orange.png",
-      "image_tool": "built-in image_gen",
-      "prompt": "Use case: stylized-concept. Game sprite and Meshy 3D reference for Purr & Tangle. One round tangled ball of thick wool yarn with tiny kitten eyes peeking out of a small dark opening on its front; a pair of small kitten ears barely peeks out at the top. Palette warm orange and terracotta striped accents. The large yarn sphere dominates the silhouette, very different from a sitting cat. Original cozy premium clay-toy 3D art matching rounded soft matte sculpted cats, thick clean yarn coils sculpted around the ball, not noisy fur, soft neutral studio lighting, near front view, readable at 48 pixels. Compact connected solid object. Centered fills 85 percent of square canvas, actual transparent background, no floor, no cast shadow, no loose disconnected strands, no text, no border.",
       "reference_image": null,
       "model": "assets/models/yarn_orange.glb",
-      "meshy_task_id": "01a1dfdd-032d-77fc-8c98-ea6777cbb9f2",
-      "consumed_credits": 15,
       "triangles": 4196,
       "sha256": "295e1b62a8e055ec5262c806d5c23e99b82ee6f265b2f0dfda0505ee10ee1160",
       "render": "assets/renders/yarn_orange.png"
@@ -66,12 +39,8 @@
     {
       "name": "yarn_blue",
       "source_image": "assets/sprites/yarn_blue.png",
-      "image_tool": "built-in image_gen",
-      "prompt": "Use case: stylized-concept. Game sprite and Meshy 3D reference for Purr & Tangle. One round tangled ball of thick wool yarn with tiny kitten eyes peeking out of a small dark opening on its front; a pair of small kitten ears barely peeks out at the top. Palette blue-gray and deep indigo dotted accents. The large yarn sphere dominates the silhouette, very different from a sitting cat. Original cozy premium clay-toy 3D art matching rounded soft matte sculpted cats, thick clean yarn coils sculpted around the ball, not noisy fur, soft neutral studio lighting, near front view, readable at 48 pixels. Compact connected solid object. Centered fills 85 percent of square canvas, actual transparent background, no floor, no cast shadow, no loose disconnected strands, no text, no border.",
       "reference_image": null,
       "model": "assets/models/yarn_blue.glb",
-      "meshy_task_id": "01a1dfdd-1980-71af-8533-3c52eb35e048",
-      "consumed_credits": 15,
       "triangles": 4245,
       "sha256": "c42abebfcc3639ebfd36f47acebd4abdfc3d191796fce9c0e73b38bafc4ed471",
       "render": "assets/renders/yarn_blue.png"
@@ -79,12 +48,8 @@
     {
       "name": "yarn_purple",
       "source_image": "assets/sprites/yarn_purple.png",
-      "image_tool": "built-in image_gen",
-      "prompt": "Use case: stylized-concept. Game sprite and Meshy 3D reference for Purr & Tangle. One round tangled ball of thick wool yarn with tiny kitten eyes peeking out of a small dark opening on its front; a pair of small kitten ears barely peeks out at the top. Palette lavender and violet zigzag accents. The large yarn sphere dominates the silhouette, very different from a sitting cat. Original cozy premium clay-toy 3D art matching rounded soft matte sculpted cats, thick clean yarn coils sculpted around the ball, not noisy fur, soft neutral studio lighting, near front view, readable at 48 pixels. Compact connected solid object. Centered fills 85 percent of square canvas, actual transparent background, no floor, no cast shadow, no loose disconnected strands, no text, no border.",
       "reference_image": null,
       "model": "assets/models/yarn_purple.glb",
-      "meshy_task_id": "01a1dfdd-0ee7-7737-a17d-91977623d9d4",
-      "consumed_credits": 15,
       "triangles": 4156,
       "sha256": "0f9b0b639f27d141bc632543e1043516d3b9846bce374df9d1ec6ea555012d67",
       "render": "assets/renders/yarn_purple.png"
@@ -93,8 +58,6 @@
   "splash": {
     "name": "boot_splash",
     "source_image": "assets/ui/boot_splash.png",
-    "image_tool": "built-in image_gen",
-    "prompt": "Use case: stylized-concept.\nAsset type: finished startup splash image for the desktop puzzle game Purr & Tangle, replacing an engine logo.\nScene/backdrop: clean warm ivory background (#f4efdf), with generous plain ivory margins and a soft grounding shadow, no frame.\nSubject: three adorable original clay-toy cats sitting close together around a small warm wicker basket of chunky yarn balls. The central cat is an orange tabby with dark terracotta stripes, an ivory muzzle and amber eyes; the blue-gray cat has dark indigo spots, a pale muzzle and sleepy eyes; the lavender-purple cat has bold violet zigzag markings, an ivory muzzle and a mischievous tiny smile. Large round heads, small rounded paws, compact pear-shaped bodies and connected curled tails. The yarn colors are orange, blue-gray and purple, with tiny kitten eyes peeking from one yarn ball.\nStyle/medium: polished cozy 3D clay-toy illustration, sculpted matte surfaces, clean friendly silhouettes, soft studio light, matching a gentle cat-and-yarn puzzle game. Rich clear colors, no realistic fur.\nComposition: landscape approximately 4:3, centered balanced splash layout. Large elegant friendly dark forest-green serif title in the upper third, three cats and basket grouped beneath in the middle/lower middle. Keep the complete title, ears and tails safely inside the central 80% with ample ivory breathing room on all edges. Image should remain legible when scaled to a 990 by 810 game window.\nText (verbatim): \"Purr & Tangle\". Render this exact title correctly and clearly. No other text.\nAvoid: Godot or any other engine logos, watermarks, UI buttons, progress bars, extra cats, clutter, gradients at the outer edges, cropped subjects. Opaque background.",
     "dimensions": [
       1448,
       1086
@@ -105,22 +68,17 @@
     {
       "name": "cat_success",
       "source_image": "assets/ui/cat_success.png",
-      "image_tool": "built-in image_gen",
       "reference_image": "assets/renders/cat_orange.png",
-      "prompt": "Use case: stylized-concept. Asset type: transparent game result-screen cat illustration for Purr & Tangle. Input image is a character/style reference: preserve this orange tabby kitten's huge amber eyes, cream muzzle/belly/paws, rounded ears, orange stripes, chunky curled tail and soft polished 3D toy render look. Full body kitten joyfully THROWING a purple yarn ball up into the air, one front paw raised in a clear tossing follow-through, happy open smile. Ball is airborne above and to the right of the paw with a loose curly yarn strand tracing the toss. Dynamic delighted pose, keep both hind paws and tail visible, readable at 200 pixels tall. Warm soft studio lighting, clean silhouette. Actual transparent alpha background, no ground plane or scenery. Center the whole composition with 8% clear padding on every edge. No text, no border, no logo, no watermark.",
       "dimensions": [
         1254,
         1254
       ],
-      "sha256": "aaaf37cd9f49a9e0c2a72d494c7c48df815f9e2d1894aa998308d90482d9ca3e",
-      "refinement": "Preserve the kitten, pose, airborne ball and yarn. Remove all background haze and detached swoosh marks; retain only the cat and yarn with transparent alpha."
+      "sha256": "aaaf37cd9f49a9e0c2a72d494c7c48df815f9e2d1894aa998308d90482d9ca3e"
     },
     {
       "name": "cat_failure",
       "source_image": "assets/ui/cat_failure.png",
-      "image_tool": "built-in image_gen",
       "reference_image": "assets/renders/cat_orange.png",
-      "prompt": "Use case: stylized-concept. Asset type: transparent game result-screen cat illustration for Purr & Tangle. Input image is a character/style reference: preserve this orange tabby kitten's huge amber eyes, cream muzzle/belly/paws, rounded ears, orange stripes, chunky curled tail and soft polished 3D toy render look. Full body kitten sitting in a comical cozy TANGLE of thick purple and teal yarn: loose strands loop around the torso, front paws and curled tail, with a visible yarn ball at its feet. Kitten has an endearing surprised sheepish expression, a little 'oops', completely unharmed and comfortable. Face and ears completely clear, no yarn around neck. Readable at 200 pixels tall. Warm soft studio lighting, clean silhouette. Actual transparent alpha background, no ground plane or scenery. Center the whole composition with 8% clear padding on every edge. No text, no border, no logo, no watermark.",
       "dimensions": [
         1254,
         1254
@@ -130,8 +88,6 @@
   ],
   "yarn_connector": {
     "source_image": "assets/ui/yarn_thread.png",
-    "image_tool": "built-in image_gen",
-    "prompt": "Use case: stylized-concept. Asset type: transparent wool yarn texture strip for a cozy 2D puzzle game's connecting thread. Create exactly one straight horizontal length of chunky soft ivory/cream knitting yarn, made of three clearly twisted fluffy plies. Rounded plump diagonal ridges, distinct warm tan creases between twists, soft fuzzy wool fibers along both edges. The strand extends horizontally from the exact left image edge to the exact right image edge, with its ends cropped flush, perfectly centered vertically. About eight broad visible twists across the whole length. The yarn occupies the middle half of a wide 3:1 canvas vertically; outer top and bottom quarters fully transparent. Orthographic front view, consistent thickness and even soft lighting across entire length. Polished cozy stylized 3D material, readable broad forms when reduced to a tiny game sprite. No curve, no ball, no braid of multiple separate ropes, no knots, no shadow beyond the yarn, no objects, no text, no glow, no background. Actual transparent alpha everywhere outside the strand, including spaces between stray fibers.",
     "dimensions": [
       2172,
       724

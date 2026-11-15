@@ -1,4 +1,4 @@
-"""Render Meshy GLBs as consistent transparent sprites with Blender.
+"""Render the included GLBs as consistent transparent sprites with Blender.
 
 blender -b -t 2 --python scripts/render_models.py -- cat_orange [cat_blue ...]
 Original generated images remain in assets/sprites; renders go in assets/renders.

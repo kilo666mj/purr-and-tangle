@@ -6,7 +6,7 @@ __pycache__/
 *.pyc
 ._*
 .DS_Store
-meshy_output/
+.local/
 .tools/
 artifacts/*.log
 artifacts/*.import

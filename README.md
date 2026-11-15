@@ -42,10 +42,10 @@ best solo score are saved locally; unfinished baskets are not.
 
 Open `project.godot` in **Godot 4.7.2** and press F5, or follow the
 [development guide](docs/DEVELOPMENT.md) for setup, tests, full controls,
-difficulty values, release builds and the generated-art pipeline.
+difficulty values, release builds and asset rendering.
 
 ## License and security
 
-[MIT](LICENSE). Original artwork and model-generation prompts are recorded in
-[assets/provenance.json](assets/provenance.json). See [SECURITY.md](SECURITY.md)
+[MIT](LICENSE). Included artwork is listed in the
+[asset inventory](assets/provenance.json). See [SECURITY.md](SECURITY.md)
 for security reporting and checks.

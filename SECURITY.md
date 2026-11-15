@@ -5,8 +5,8 @@ Please report vulnerabilities privately through
 Do not include credentials or exploitable details in a public issue.
 
 The latest published release receives fixes. The game plays locally and does
-not need network access or API keys. Meshy tooling is optional and reads a
-locally stored key; never commit a real dotenv file.
+not need network access or API keys. Never commit credentials or real dotenv
+files to the repository.
 
 CodeQL scans the Python development tools and GitHub Actions workflows on
 changes to `main`, pull requests, and weekly. CodeQL does not support GDScript;

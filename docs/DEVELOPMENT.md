@@ -23,9 +23,8 @@ startup logo without adding a forced loading delay.
 Settings, difficulty selection, and the best solo score persist locally;
 individual runs and versus win tallies start fresh when the game closes.
 
-No API keys, Meshy account, Blender installation, or paid services are needed
-to play. Generated artwork and model renders are included. Blender and Meshy
-are optional tools for rebuilding or extending the artwork.
+All artwork and model renders are included. Playing requires no API keys or
+external services. Blender is optional for rendering the included 3D models.
 
 | Action | Keyboard | Controller (standard layout) |
 | --- | --- | --- |
@@ -131,21 +130,15 @@ rounds and outcomes. `main.gd` and `versus_screen.gd` present the modes using a
 shared `board_view.gd` and `puzzle_art.gd`. Scoring is 100 per yarn and 20 per cat,
 multiplied by chain depth; soft and hard drops add 1 and 2 points per row.
 
-## Original artwork and 3D pipeline
+## Artwork and rendering
 
-Six original transparent source images live in `assets/sprites/`. They were
-created with the built-in image generation tool. `assets/provenance.json`
-records prompts, generation settings, and Meshy task IDs.
+Six transparent source images live in `assets/sprites/`, with textured GLB
+models in `assets/models/` and their rendered sprites in `assets/renders/`.
+`assets/provenance.json` lists the asset files and checksums.
 
-The startup illustration is `assets/ui/boot_splash.png`, also made with the
-built-in image generation tool. Its exact prompt and file hash are recorded in
-the `splash` entry of `assets/provenance.json`. Godot's boot splash settings in
-`project.godot` scale it to fit while preserving its aspect ratio.
-
-Each source was converted by Meshy T2.5 Smart Topology with N1 2K textures,
-targeting 4,000 triangles. The six textured GLBs live in `assets/models/`.
-The approved batch cost 90 credits total. No rigging or further paid operations
-are needed for this prototype.
+The startup illustration, result-screen cats and wool texture live in
+`assets/ui/`. Godot's boot splash settings in `project.godot` scale the startup
+illustration to fit while preserving its aspect ratio.
 
 Blender renders those models into `assets/renders/`, which the game prefers over
 the source artwork. Rebuild them with:
@@ -157,12 +150,6 @@ bash scripts/render_all.sh
 This uses at most two Blender processes and a project-local sRGB color profile
 for reproducible colors. No system Blender configuration is changed.
 
-The Meshy MCP installer is `scripts/meshy_setup.py`. It reads only
-`MESHY_API_KEY` from the selected local dotenv file without executing it, stores
-the file path in Codex settings, and keeps the key out of command arguments and
-output. `python3 scripts/meshy_setup.py check` performs a free authentication and
-tool-discovery check. Generation costs credits and is separate from setup.
-
 ## Validation
 
 ```sh
@@ -172,7 +159,7 @@ bash scripts/preview.sh all
 
 The first command imports resources, checks scripts, exercises deterministic
 rules, difficulty presets, isolated inputs, reconnects, rematches and controller
-menus headlessly, and tests credential handling. The second uses Xvfb/software
+menus headlessly, and tests release packaging. The second uses Xvfb/software
 OpenGL to save actual screenshots of solo play, title, versus play, lobby and
 pause, plus solo and versus results under `artifacts/`. Omit `all` for solo
 only, pass `versus` for the three versus screens, or `outcomes` for the three

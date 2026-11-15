@@ -120,9 +120,9 @@ unresolved board states.
 ## Initial implementation choices
 
 - Desktop first, Godot 4.7.2 with GDScript and the compatibility renderer.
-- Original clay-style images from the built-in image generation tool, converted
-  to six textured Meshy GLBs and rendered to sprites in Blender. The game uses
-  those renders; editable 3D models and source artwork are preserved.
+- Clay-style artwork with six textured GLB models rendered to sprites in
+  Blender. The game uses those renders; editable models and source artwork
+  are included.
 - Keyboard, controller (D-pad/left stick and face buttons), and clickable controls.
 - Individual runs with persistent accessibility preferences and best score.
 - Seeded layouts and piece sequences; default run seed 1729.

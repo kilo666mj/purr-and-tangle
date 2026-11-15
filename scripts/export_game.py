@@ -36,6 +36,25 @@ def run(*args, cwd=ROOT):
     return result.stdout
 
 
+def resolve_godot(requested, scratch):
+    candidate = requested or os.environ.get("GODOT_BIN") or os.environ.get("GODOT") or "godot"
+    path = Path(candidate).expanduser()
+    if not path.is_file():
+        found = shutil.which(candidate)
+        if not found:
+            raise FileNotFoundError("Godot executable not found. Set GODOT_BIN or pass --godot with its full path.")
+        path = Path(found)
+    path = path.resolve()
+    if sys.platform == "win32" and not path.suffix:
+        # setup-godot exposes an extensionless hard link. Bash can launch it,
+        # but Windows executable lookup expects .exe. Keep the alias private
+        # to this build; no installed engine files are renamed or modified.
+        executable = Path(scratch) / "godot.exe"
+        shutil.copyfile(path, executable)
+        path = executable
+    return str(path)
+
+
 def zip_folder(folder, archive):
     with zipfile.ZipFile(archive, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as output:
         for path in sorted(folder.rglob("*")):
@@ -57,6 +76,9 @@ def build(platform, version, godot):
     presets = ROOT / "export_presets.cfg"
     original_project, original_presets = project.read_text(), presets.read_text()
     try:
+        godot = resolve_godot(godot, stage)
+        print(f"Using Godot: {godot}", flush=True)
+        engine_version = run(godot, "--version").strip()
         project.write_text(re.sub(r'^config/version="[^"]*"', f'config/version="{number}"', original_project, flags=re.M))
         edited = original_presets
         for key in ("application/file_version", "application/product_version", "application/short_version", "application/version"):
@@ -87,7 +109,7 @@ def build(platform, version, godot):
             shutil.copy2(ROOT / name, bundle / name)
         commit = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
         (bundle / "BUILD.json").write_text(json.dumps({"version": version, "commit": commit,
-            "platform": label, "godot": run(godot, "--version").strip()}, indent=2) + "\n")
+            "platform": label, "godot": engine_version}, indent=2) + "\n")
         dist = ROOT / "dist"
         dist.mkdir(exist_ok=True)
         archive = dist / f"{bundle.name}.zip"
@@ -108,7 +130,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--platform", choices=TARGETS, required=True)
     parser.add_argument("--version", required=True)
-    parser.add_argument("--godot", default=os.environ.get("GODOT_BIN", "godot"))
+    parser.add_argument("--godot", help="Godot executable; defaults to GODOT_BIN, GODOT, then PATH")
     args = parser.parse_args()
     build(args.platform, args.version, args.godot)
 
