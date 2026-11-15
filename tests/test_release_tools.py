@@ -6,6 +6,7 @@ from pathlib import Path
 import stat
 import sys
 import tempfile
+from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 import zipfile
@@ -13,7 +14,7 @@ from xml.parsers.expat import ExpatError
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 from export_game import TARGETS, read_macos_info, resolve_godot, version_number, zip_folder
-from publish_release import verify_archives
+from publish_release import publish, verify_archives
 
 
 class ReleaseTest(unittest.TestCase):
@@ -123,6 +124,43 @@ class ReleaseTest(unittest.TestCase):
             next(root.glob("*.zip")).unlink()
             with self.assertRaises(FileNotFoundError):
                 verify_archives(root, "v0.1.0", "a" * 40)
+
+    def test_publisher_uses_draft_id_and_resumes_verified_uploads(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.make_archives(root)
+            assets = verify_archives(root, "v0.1.0", "a" * 40)
+            uploaded = [{"name": path.name, "digest": "sha256:" + hashlib.sha256(path.read_bytes()).hexdigest()} for path in assets]
+            for resume in [False, True]:
+                draft = {"id": 42, "tag_name": "v0.1.0", "draft": True, "assets": uploaded if resume else []}
+                def fake_api(endpoint, method="GET", data=None):
+                    self.assertNotIn("/releases/tags/", endpoint)
+                    if "/commits/" in endpoint:
+                        return {"sha": "a" * 40}
+                    if method == "POST":
+                        return draft
+                    return dict(draft, assets=uploaded)
+                with patch("publish_release.find_release", return_value=draft if resume else None), \
+                     patch("publish_release.api", side_effect=fake_api) as api_mock, \
+                     patch("publish_release.gh", return_value=SimpleNamespace(returncode=0, stdout="", stderr="")) as gh_mock, \
+                     patch.dict(os.environ, {"GITHUB_STEP_SUMMARY": ""}), patch("builtins.print"):
+                    publish(root, "v0.1.0", "a" * 40, "owner/game")
+                api_mock.assert_any_call("repos/owner/game/releases/42", "PATCH", {"draft": False, "make_latest": "true"})
+                uploads = [call for call in gh_mock.call_args_list if call.args[:2] == ("release", "upload")]
+                self.assertEqual(len(uploads), 0 if resume else 1)
+
+    def test_publisher_refuses_mismatched_draft_assets(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.make_archives(root)
+            draft = {"id": 42, "draft": True, "assets": [{"name": "SHA256SUMS", "digest": "sha256:wrong"}]}
+            with patch("publish_release.find_release", return_value=draft), \
+                 patch("publish_release.api", return_value={"sha": "a" * 40}) as api_mock, \
+                 patch("publish_release.gh", return_value=SimpleNamespace(returncode=0, stdout="", stderr="")) as gh_mock:
+                with self.assertRaisesRegex(RuntimeError, "no files were overwritten"):
+                    publish(root, "v0.1.0", "a" * 40, "owner/game")
+            self.assertFalse(any(call.args[:2] == ("release", "upload") for call in gh_mock.call_args_list))
+            self.assertFalse(any(len(call.args) > 1 and call.args[1] == "PATCH" for call in api_mock.call_args_list))
 
 
 if __name__ == "__main__":
