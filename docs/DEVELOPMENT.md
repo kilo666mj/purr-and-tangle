@@ -193,7 +193,7 @@ exports pass, it creates the tag, uploads three archives plus `SHA256SUMS`,
 checks GitHub's uploaded asset digests, then publishes the release. Pushing a
 new version tag also triggers it. Existing tags/releases are never overwritten.
 
-macOS uses Godot's built-in ad-hoc signing and a universal Intel/Apple Silicon
+macOS uses ad-hoc signing and a universal Intel/Apple Silicon
 binary. Apple notarization and Windows Authenticode signing are not configured.
 See [PLAYING.txt](../PLAYING.txt) for installation details.
 

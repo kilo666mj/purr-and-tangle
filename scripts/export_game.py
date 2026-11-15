@@ -12,6 +12,8 @@ import subprocess
 import sys
 import tempfile
 import zipfile
+from xml.parsers.expat import ExpatError
+from xml.sax.saxutils import escape
 
 ROOT = Path(__file__).resolve().parent.parent
 TARGETS = {
@@ -62,6 +64,26 @@ def zip_folder(folder, archive):
                 output.write(path, path.relative_to(folder.parent).as_posix())
 
 
+def read_macos_info(app):
+    path = app / "Contents/Info.plist"
+    raw = path.read_bytes()
+    try:
+        return plistlib.loads(raw), False
+    except ExpatError:
+        # Godot 4.7.2 escapes display names but inserts CFBundleExecutable
+        # without XML escaping. Repair only that value, bound to a real file.
+        match = re.search(rb"<key>CFBundleExecutable</key>\s*<string>([^<]*)</string>", raw)
+        if not match:
+            raise
+        name = match[1].decode("utf-8")
+        if Path(name).name != name or not (app / "Contents/MacOS" / name).is_file():
+            raise
+        corrected = raw[:match.start(1)] + escape(name).encode("utf-8") + raw[match.end(1):]
+        info = plistlib.loads(corrected)
+        path.write_bytes(corrected)
+        return info, True
+
+
 def build(platform, version, godot):
     number = version_number(version)
     native = {"linux": "linux", "win32": "windows", "darwin": "macos"}.get(sys.platform)
@@ -91,9 +113,12 @@ def build(platform, version, godot):
         if not app.exists():
             raise RuntimeError("Export did not produce the expected executable")
         if platform == "macos":
-            with (app / "Contents/Info.plist").open("rb") as stream:
-                info = plistlib.load(stream)
+            info, repaired = read_macos_info(app)
             executable = app / "Contents/MacOS" / info["CFBundleExecutable"]
+            if repaired:
+                # Changing Info.plist invalidates the bundle's ad-hoc signature.
+                run("codesign", "--force", "--deep", "--sign", "-",
+                    "--preserve-metadata=entitlements,flags", app)
             arches = run("lipo", "-archs", executable)
             if not {"arm64", "x86_64"}.issubset(arches.split()):
                 raise RuntimeError("macOS export is not universal")
