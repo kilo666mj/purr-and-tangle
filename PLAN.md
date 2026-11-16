@@ -156,25 +156,29 @@ See README.md for the exact difficulty values and player controls.
 ## Mini-game collection
 
 Purr & Tangle is growing into a small collection of original cat games in
-classic arcade genres, chosen from the title screen. They share the cats, yarn,
+classic arcade genres, chosen from a picture-card menu shown at launch. They share the cats, yarn,
 menus, sound and input handling; each game adds only its own rules and screen.
 Borrow a genre's mechanics, never a specific game's characters, levels or look.
-Do not build a shared mini-game framework until a third game shows what is
-worth sharing.
+Share only what two games have already needed.
 
 - [x] **Yarn trail** (snake-style): a kitten gathers yarn balls and drags an
       ever-longer strand around the basket without crossing it or leaving.
+- [x] **Laser pounce** (reaction): a red dot darts around the room and the
+      kitten must reach it before its ring runs out. Three escapes end the run.
 
-Ideas for later:
+- [x] **Kitchen dash** (lane crossing): get a kitten across a busy kitchen
+      floor past robot vacuums and rolling yarn. Three bumps end the run.
+- [x] **Kitten match** (memory): flip cards to pair up twelve pairs before
+      running out of misses.
+- [x] **Treat maze** (maze chase): eat every treat while two tangles chase
+      you. Three catches end the run.
+- [x] **Shelf swat** (paddle and ball): bat a yarn ball upward to knock things
+      off shelves. Three drops end the run.
 
-- [ ] **Laser pounce** (reaction): a red dot darts around and you pounce on it
-      before it moves. Would suit two-player versus.
-- [ ] **Shelf swat** (paddle and ball): bat a yarn ball upward to knock things
-      off shelves.
-- [ ] **Kitchen dash** (lane crossing): get a kitten across a busy kitchen
-      floor past robot vacuums and rolling yarn.
-- [ ] **Treat maze** (maze chase): collect treats while the tangles chase you.
-- [ ] **Kitten match** (memory): flip cards to pair up kittens.
+The card pictures in `assets/ui/game_*.png` are composites of the existing
+renders; replace them with dedicated 4:3 artwork at the same paths.
 
-Yarn trail keeps its own best score. It has no difficulty presets, versus mode
-or settings in its pause menu yet (M still mutes).
+Each side game keeps its own best score. They have no difficulty presets,
+versus mode or settings in their pause menus yet (M still mutes). Laser pounce
+would suit two-player versus. None of the side games has been tuned by
+playtesting yet. `side_screen.gd` holds what the side games share.

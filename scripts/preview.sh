@@ -28,12 +28,16 @@ case "${1:-solo}" in
     capture --lost-showcase
     capture --versus-showcase --versus-result
     ;;
-  trail) capture --trail-showcase ;;
+  trail|pounce|dash|match|maze|swat) capture "--$1-showcase" ;;
+  games) capture --games-showcase ;;
   all)
-    capture --trail-showcase
+    for side in trail pounce dash match maze swat; do
+      capture "--$side-showcase"
+    done
     capture --showcase
     capture --showcase --vertical-pair
     capture --title-showcase
+    capture --games-showcase
     capture --versus-showcase
     capture --versus-lobby
     capture --versus-showcase --versus-pause
@@ -41,6 +45,6 @@ case "${1:-solo}" in
     capture --lost-showcase
     capture --versus-showcase --versus-result
     ;;
-  *) printf 'Usage: bash scripts/preview.sh [solo|versus|outcomes|yarn|trail|all]\n' >&2; exit 2 ;;
+  *) printf 'Usage: bash scripts/preview.sh [solo|versus|outcomes|yarn|trail|pounce|dash|match|maze|swat|games|all]\n' >&2; exit 2 ;;
 esac
 printf 'Screenshots saved under artifacts/\n'

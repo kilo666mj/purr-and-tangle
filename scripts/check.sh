@@ -22,6 +22,11 @@ done
 run_godot --headless --path . --script tests/test_rules.gd
 run_godot --headless --path . --script tests/test_versus.gd
 run_godot --headless --path . --script tests/test_trail.gd
+run_godot --headless --path . --script tests/test_pounce.gd
+run_godot --headless --path . --script tests/test_dash.gd
+run_godot --headless --path . --script tests/test_match.gd
+run_godot --headless --path . --script tests/test_maze.gd
+run_godot --headless --path . --script tests/test_swat.gd
 run_godot --headless --path . --script tests/test_speed.gd
 run_godot --headless --path . --script tests/test_reactions.gd
 run_godot --headless --path . --script tests/test_ui.gd

@@ -48,6 +48,8 @@ func run() -> void:
 	await process_frame
 	await process_frame
 	var saved_difficulty: int = game.difficulty
+	await tap(2, JOY_BUTTON_A)
+	expect(game.menu_kind == "title", "The puzzle card opens its start screen by controller")
 	await tap(2, JOY_BUTTON_DPAD_DOWN)
 	expect(root.gui_get_focus_owner().text == "Local two-player versus", "Versus is reachable from the title by controller")
 	await tap(2, JOY_BUTTON_A)
@@ -128,7 +130,7 @@ func run() -> void:
 	expect(screen.match_state.difficulty == selected_difficulty, "Rematch retains selected difficulty")
 	game.return_to_title()
 	await process_frame
-	expect(not screen.visible and game.menu_kind == "title" and game.board_view.visible, "Main menu restores single-player presentation")
+	expect(not screen.visible and game.menu_kind == "games" and game.board_view.visible, "Main menu restores single-player presentation")
 	game.start_versus()
 	key(KEY_F1, true)
 	key(KEY_F1, false)
@@ -169,6 +171,8 @@ func run() -> void:
 	game.menu_primary()
 	expect(game.session.difficulty == selected_difficulty and game.session.board.level == 2, "Solo level progression keeps its difficulty")
 	game.difficulty = saved_difficulty
+	game.saved_level = 1
+	game.saved_score = 0
 	game.save_settings()
 	game.sound.stop()
 	game.queue_free()

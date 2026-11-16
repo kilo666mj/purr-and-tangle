@@ -1,9 +1,10 @@
 Purr & Tangle
 =============
 
-A cozy falling-pair puzzle. Match four cats/yarn of one color in a straight
-line. Clear every yarn tangle to rescue the kittens. Choose solo or local
-two-player versus on the title screen. No engine installation or API keys
+A cozy collection of little cat games. The main game is a falling-pair
+puzzle: match four cats/yarn of one color in a straight line and clear every
+yarn tangle to rescue the kittens, solo or in local two-player versus. Six
+smaller games sit beside it on the opening menu. No engine installation or API keys
 are needed to play these builds.
 
 Windows: Extract the entire ZIP, then open Purr-and-Tangle.exe. Keep the .pck
@@ -25,11 +26,19 @@ Space hard drop, Esc/P pause.
 Controller: D-pad/left stick move, A/B rotate, X hard drop, Start pause.
 Versus keyboard: P1 WASD/Q/E; P2 arrows/comma/period. Choose F1/F2 in the lobby.
 Controllers join with A. Each player needs a distinct controller or keyboard slot.
-Yarn trail (title screen): arrows/WASD, D-pad or left stick steer the kitten.
+Pick a game from the opening menu.
+Yarn trail: arrows/WASD, D-pad or left stick steer the kitten.
 Gather yarn balls, stay inside the basket and never cross your own strand.
+Laser pounce: same controls, one step per press. Reach the red
+dot before its ring runs out; three escapes end the run.
+Kitchen dash: step across the lanes to the cushion; three bumps end the run.
+Kitten match: move the cursor, flip with Enter/Space/A; find all twelve pairs.
+Treat maze: eat every treat and keep away from the tangles.
+Shelf swat: move the cushion left and right to keep the yarn ball in the air.
 
-Difficulty and accessibility settings and the best solo and Yarn trail scores are saved locally.
-Unfinished baskets and versus win tallies are not saved when you close the game.
+Difficulty and accessibility settings and the best solo and side-game scores are saved locally.
+The puzzle remembers the basket you reached and offers to continue from it;
+a basket in progress restarts from its beginning. Versus win tallies are not saved.
 
 Source, license and issues: https://github.com/kilo666mj/purr-and-tangle
 Game license: MIT (LICENSE). Engine notices: THIRD_PARTY_NOTICES.txt.
