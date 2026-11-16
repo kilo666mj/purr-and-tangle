@@ -31,12 +31,16 @@ Windows builds are unsigned and macOS builds are not Apple-notarized.
 | Hard drop | Space | X |
 | Pause | Esc / P | Start |
 
+**Yarn trail** is a second, smaller game on the title screen: steer a kitten
+with the arrows, WASD, D-pad or stick to gather yarn balls. The strand behind
+it grows with each one; stay inside the basket and never cross the strand.
+
 For versus, press **A on each controller** to join. Keyboard players choose
 **F1** for P1 (**WASD / Q / E**) and **F2** for P2 (**arrows / comma / period**).
 Both players get the same layouts, pairs, difficulty and speed.
 
 Sound, reduced motion and pattern cues are in the pause menu. Settings and
-best solo score are saved locally; unfinished baskets are not.
+best solo and Yarn trail scores are saved locally; unfinished baskets are not.
 
 ## Development
 

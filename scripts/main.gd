@@ -8,11 +8,14 @@ const BoardView = preload("res://scripts/board_view.gd")
 const VersusScreen = preload("res://scripts/versus_screen.gd")
 const Difficulty = preload("res://scripts/difficulty.gd")
 const CatCompanion = preload("res://scripts/cat_companion.gd")
+const TrailScreen = preload("res://scripts/trail_screen.gd")
 
 var session := Session.new()
 var board_view := BoardView.new()
 var companion := CatCompanion.new()
 var versus: Control
+var trail: Control
+var trail_best := 0
 var solo_controls: Array = []
 var ui := Control.new()
 var menu := PanelContainer.new()
@@ -84,6 +87,11 @@ func _ready() -> void:
 	versus.textures = textures
 	versus.hide()
 	ui.add_child(versus)
+	trail = TrailScreen.new()
+	trail.host = self
+	trail.textures = textures
+	trail.hide()
+	ui.add_child(trail)
 	shade.color = Color(0.08, 0.16, 0.13, 0.65)
 	shade.size = Vector2(1100, 900)
 	shade.mouse_filter = Control.MOUSE_FILTER_STOP
@@ -97,6 +105,8 @@ func _ready() -> void:
 	get_window().focus_exited.connect(func():
 		if versus.visible:
 			versus.pause_for_focus()
+		elif trail.visible:
+			trail.pause_for_focus()
 		elif menu_kind.is_empty():
 			toggle_pause()
 	)
@@ -126,6 +136,16 @@ func _ready() -> void:
 		start_versus()
 	if OS.get_cmdline_user_args().has("--versus-pause"):
 		versus.show_menu("pause")
+	if OS.get_cmdline_user_args().has("--trail-showcase"):
+		start_trail()
+		trail.trail.cells.assign([Vector2i(9, 3), Vector2i(9, 4), Vector2i(9, 5), Vector2i(9, 6), Vector2i(8, 6), Vector2i(7, 6), Vector2i(6, 6), Vector2i(6, 7), Vector2i(6, 8), Vector2i(5, 8)])
+		trail.trail.colors.assign([0, 0, 0, 0, 1, 1, 2, 0, 1, 2])
+		trail.trail.yarn = Vector2i(12, 4)
+		trail.trail.score = 70
+		trail.trail.heading = Vector2i.UP
+		trail.trail.moving = true
+		trail.trail.paused = true
+		trail.set_process(false)
 	for outcome in ["won", "lost"]:
 		if OS.get_cmdline_user_args().has("--" + outcome + "-showcase"):
 			session.board.phase = Board.Phase.WON if outcome == "won" else Board.Phase.LOST
@@ -142,7 +162,7 @@ func capture() -> void:
 	await get_tree().process_frame
 	await RenderingServer.frame_post_draw
 	var shot := get_viewport().get_texture().get_image()
-	var filename := "versus-lobby" if OS.get_cmdline_user_args().has("--versus-lobby") else ("versus" if versus.visible else "gameplay")
+	var filename := "versus-lobby" if OS.get_cmdline_user_args().has("--versus-lobby") else ("versus" if versus.visible else ("trail" if trail.visible else "gameplay"))
 	if OS.get_cmdline_user_args().has("--versus-pause"):
 		filename = "versus-pause"
 	elif OS.get_cmdline_user_args().has("--title-showcase"):
@@ -244,6 +264,7 @@ func show_menu(kind: String) -> void:
 	make_button(cta, Vector2.ZERO, Vector2(450, 49), menu_primary, column)
 	if kind == "title":
 		make_button("Local two-player versus", Vector2.ZERO, Vector2(450, 46), start_versus, column)
+		make_button("Yarn trail · a little side game", Vector2.ZERO, Vector2(450, 46), start_trail, column)
 		var difficulty_button := make_button(difficulty_label(), Vector2.ZERO, Vector2(450, 42), cycle_difficulty, column)
 		var difficulty_copy := make_label(Difficulty.DESCRIPTIONS[difficulty], 15, column)
 		difficulty_button.pressed.connect(func():
@@ -330,12 +351,16 @@ func controller_changed(device: int, connected: bool) -> void:
 	if versus.visible:
 		versus.controller_changed(device, connected)
 		return
+	if trail.visible:
+		if not connected:
+			trail.pause_for_focus()
+		return
 	if not connected and menu_kind.is_empty():
 		show_menu("pause")
 
 
 func _input(event: InputEvent) -> void:
-	if versus.visible:
+	if versus.visible or trail.visible:
 		return
 	if event is InputEventJoypadButton or event is InputEventJoypadMotion:
 		controller = true
@@ -352,7 +377,7 @@ func _input(event: InputEvent) -> void:
 
 
 func _process(delta: float) -> void:
-	if versus.visible:
+	if versus.visible or trail.visible:
 		return
 	board_view.reduced_motion = reduced_motion
 	board_view.show_patterns = show_patterns
@@ -397,7 +422,7 @@ func _process(delta: float) -> void:
 
 func _draw() -> void:
 	draw_rect(Rect2(Vector2.ZERO, size), Color("e4e6d7"))
-	if versus.visible:
+	if versus.visible or trail.visible:
 		return
 	draw_set_transform(ui_offset, 0.0, Vector2.ONE * ui_scale)
 	draw_rect(Rect2(0, 0, 1100, 900), CREAM)
@@ -472,6 +497,7 @@ func load_settings() -> void:
 		reduced_motion = config.get_value("accessibility", "reduced_motion", false)
 		show_patterns = config.get_value("accessibility", "patterns", true)
 		high_score = config.get_value("game", "best", 0)
+		trail_best = config.get_value("game", "trail_best", 0)
 		difficulty = Difficulty.valid(int(config.get_value("game", "difficulty", Difficulty.NORMAL)))
 
 
@@ -481,6 +507,7 @@ func save_settings() -> void:
 	config.set_value("accessibility", "reduced_motion", reduced_motion)
 	config.set_value("accessibility", "patterns", show_patterns)
 	config.set_value("game", "best", high_score)
+	config.set_value("game", "trail_best", trail_best)
 	config.set_value("game", "difficulty", difficulty)
 	if config.save("user://settings.cfg") != OK:
 		push_warning("Settings could not be saved")
@@ -524,8 +551,21 @@ func start_versus() -> void:
 	queue_redraw()
 
 
+func start_trail() -> void:
+	session.paused = true
+	menu_kind = "trail"
+	menu.hide()
+	shade.hide()
+	for control in solo_controls:
+		control.hide()
+	trail.show()
+	trail.open(session.run_seed)
+	queue_redraw()
+
+
 func return_to_title() -> void:
 	versus.hide()
+	trail.hide()
 	versus.match_state.set_paused(true)
 	for control in solo_controls:
 		control.show()

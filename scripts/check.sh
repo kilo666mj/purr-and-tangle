@@ -21,9 +21,11 @@ for script in scripts/*.gd; do
 done
 run_godot --headless --path . --script tests/test_rules.gd
 run_godot --headless --path . --script tests/test_versus.gd
+run_godot --headless --path . --script tests/test_trail.gd
 run_godot --headless --path . --script tests/test_speed.gd
 run_godot --headless --path . --script tests/test_reactions.gd
 run_godot --headless --path . --script tests/test_ui.gd
 run_godot --headless --path . --script tests/test_versus_ui.gd
+run_godot --headless --path . --script tests/test_trail_ui.gd
 run_godot --headless --path . --quit-after 10
 python3 -m unittest discover -s tests -v

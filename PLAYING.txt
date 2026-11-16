@@ -25,8 +25,10 @@ Space hard drop, Esc/P pause.
 Controller: D-pad/left stick move, A/B rotate, X hard drop, Start pause.
 Versus keyboard: P1 WASD/Q/E; P2 arrows/comma/period. Choose F1/F2 in the lobby.
 Controllers join with A. Each player needs a distinct controller or keyboard slot.
+Yarn trail (title screen): arrows/WASD, D-pad or left stick steer the kitten.
+Gather yarn balls, stay inside the basket and never cross your own strand.
 
-Difficulty and accessibility settings and the best solo score are saved locally.
+Difficulty and accessibility settings and the best solo and Yarn trail scores are saved locally.
 Unfinished baskets and versus win tallies are not saved when you close the game.
 
 Source, license and issues: https://github.com/kilo666mj/purr-and-tangle

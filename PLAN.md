@@ -152,3 +152,29 @@ difficulty pacing, and extended playtesting remain to be evaluated on a desktop.
 This mode is a local race to clear all yarn or outlast the opponent's full
 basket. Garbage attacks and network play remain outside this implementation.
 See README.md for the exact difficulty values and player controls.
+
+## Mini-game collection
+
+Purr & Tangle is growing into a small collection of original cat games in
+classic arcade genres, chosen from the title screen. They share the cats, yarn,
+menus, sound and input handling; each game adds only its own rules and screen.
+Borrow a genre's mechanics, never a specific game's characters, levels or look.
+Do not build a shared mini-game framework until a third game shows what is
+worth sharing.
+
+- [x] **Yarn trail** (snake-style): a kitten gathers yarn balls and drags an
+      ever-longer strand around the basket without crossing it or leaving.
+
+Ideas for later:
+
+- [ ] **Laser pounce** (reaction): a red dot darts around and you pounce on it
+      before it moves. Would suit two-player versus.
+- [ ] **Shelf swat** (paddle and ball): bat a yarn ball upward to knock things
+      off shelves.
+- [ ] **Kitchen dash** (lane crossing): get a kitten across a busy kitchen
+      floor past robot vacuums and rolling yarn.
+- [ ] **Treat maze** (maze chase): collect treats while the tangles chase you.
+- [ ] **Kitten match** (memory): flip cards to pair up kittens.
+
+Yarn trail keeps its own best score. It has no difficulty presets, versus mode
+or settings in its pause menu yet (M still mutes).
