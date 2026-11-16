@@ -99,7 +99,7 @@ func run() -> void:
 	expect(game.menu_kind == "won", "Winning shows the next-basket menu")
 	await process_frame
 	var win_cat: TextureRect = game.menu.find_child("OutcomeCat", true, false)
-	expect(win_cat != null and win_cat.texture == game.textures.cat_success, "Win menu displays the yarn-throwing cat")
+	expect(win_cat != null and win_cat.texture == game.textures.cat_won, "Win menu displays the rescued kittens")
 	expect(game.menu.position.y + game.menu.size.y <= 900, "Win art and controls fit the viewport")
 	expect(root.gui_get_focus_owner().text == "Next basket", "Outcome art preserves controller focus")
 	game.menu_primary()
@@ -114,6 +114,11 @@ func run() -> void:
 	game.menu_primary()
 	expect(game.session.board.level == 1 and game.session.board.score == 0, "Restart resets run state")
 	expect(game.mute_button.position.y + game.mute_button.size.y <= game.motion_button.position.y, "Settings buttons do not overlap")
+	game.muted = false
+	game.play_cat(600.0, 0.5)
+	expect(game.sound.stream.data.size() == 22050, "Meow fills its sample buffer")
+	game.play_cat(110.0, 0.5, true)
+	expect(game.sound.stream.data.size() == 22050, "Purr fills its sample buffer")
 	game.sound.stop()
 	game.queue_free()
 	await process_frame

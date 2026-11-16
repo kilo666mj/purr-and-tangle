@@ -81,7 +81,7 @@ func pose() -> Dictionary:
 
 func _draw() -> void:
 	var happy := reaction in ["rescue", "chain", "won"]
-	var key := "cat_success" if happy else ("cat_failure" if reaction == "lost" else "cat_orange")
+	var key := "cat_won" if reaction == "won" else "cat_success" if happy else ("cat_failure" if reaction == "lost" else "cat_orange")
 	if not textures.has(key):
 		return
 	var motion := pose()

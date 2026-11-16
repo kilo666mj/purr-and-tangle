@@ -45,7 +45,7 @@ func _ready() -> void:
 			if not ResourceLoader.exists(path):
 				path = "res://assets/sprites/" + key + ".png"
 			textures[key] = load(path)
-	for outcome in ["success", "failure"]:
+	for outcome in ["success", "failure", "won"]:
 		textures["cat_" + outcome] = load("res://assets/ui/cat_" + outcome + ".png")
 	load_settings()
 	for arg in OS.get_cmdline_user_args():
@@ -383,9 +383,9 @@ func _process(delta: float) -> void:
 	session.tick(delta, Input.is_action_pressed("soft") or soft_touch)
 	var after: int = session.board.phase
 	if before == Board.Phase.PLAYING and after != Board.Phase.PLAYING:
-		play_tone(220.0, 0.045)
+		play_cat(110.0, 0.12, true)
 	if before == Board.Phase.CLEARING and after == Board.Phase.GRAVITY:
-		play_tone(520.0 + session.board.chain * 100.0, 0.12)
+		play_cat(520.0 + session.board.chain * 100.0, 0.3)
 	board_view.animate(delta, before)
 	companion.advance(delta, session.board, session.paused)
 	if after in [Board.Phase.WON, Board.Phase.LOST]:
@@ -486,16 +486,23 @@ func save_settings() -> void:
 		push_warning("Settings could not be saved")
 
 
-func play_tone(frequency: float, duration: float) -> void:
+func play_cat(frequency: float, duration: float, purr := false) -> void:
 	if muted:
 		return
 	var samples := int(22050 * duration)
 	var data := PackedByteArray()
 	data.resize(samples * 2)
+	var phase := 0.0
 	for i in range(samples):
-		var t := float(i) / 22050.0
-		var envelope := sin(PI * float(i) / samples) * exp(-t * 16)
-		var value := sin(TAU * frequency * t) * envelope * 0.13
+		var p := float(i) / samples
+		# Meow: pitch scoops up then falls away ("me-ow"). Purr: steady rumble in ~26 Hz pulses.
+		var pitch := 1.0 if purr else 0.75 + 0.45 * sin(PI * pow(p, 0.6))
+		phase += TAU * frequency * pitch / 22050.0
+		var envelope := sin(PI * p)
+		if purr:
+			envelope *= 0.5 + 0.5 * sin(TAU * 26.0 * p * duration)
+		# Harmonics give the nasal, voiced quality a pure sine lacks.
+		var value := (sin(phase) + 0.5 * sin(2 * phase) + 0.3 * sin(3 * phase)) / 1.8 * envelope * 0.16
 		data.encode_s16(i * 2, int(value * 32767))
 	var stream := AudioStreamWAV.new()
 	stream.format = AudioStreamWAV.FORMAT_16_BITS
