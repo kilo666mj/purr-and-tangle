@@ -23,6 +23,14 @@ TARGETS = {
 }
 
 
+NOTICES = ("LICENSE", "PLAYING.txt", "THIRD_PARTY_NOTICES.txt")
+
+
+def archive_name(version, platform):
+    # macOS players get a disk image to drag the app out of; the others a ZIP.
+    return f"Purr-and-Tangle-{version}-{TARGETS[platform][1]}.{'dmg' if platform == 'macos' else 'zip'}"
+
+
 def version_number(value):
     if not re.fullmatch(r"v\d+\.\d+\.\d+", value):
         raise ValueError("Version must be vMAJOR.MINOR.PATCH, for example v0.1.0")
@@ -62,6 +70,26 @@ def zip_folder(folder, archive):
         for path in sorted(folder.rglob("*")):
             if path.is_file():
                 output.write(path, path.relative_to(folder.parent).as_posix())
+
+
+def make_dmg(bundle, app_name, image, scratch):
+    # The shortcut lets players install by dragging the app onto it.
+    (bundle / "Applications").symlink_to("/Applications")
+    run("hdiutil", "create", "-volname", "Purr & Tangle", "-srcfolder", bundle, "-format", "UDZO", "-ov", image)
+    run("hdiutil", "verify", image)
+    # Mount the image and check what a player would actually receive.
+    mount = Path(scratch) / "mounted"
+    mount.mkdir()
+    run("hdiutil", "attach", image, "-nobrowse", "-readonly", "-mountpoint", mount)
+    try:
+        if os.readlink(mount / "Applications") != "/Applications":
+            raise RuntimeError("Disk image is missing its Applications shortcut")
+        for name in NOTICES + ("BUILD.json",):
+            if not (mount / name).is_file():
+                raise RuntimeError(f"Disk image is missing {name}")
+        run("codesign", "--verify", "--deep", "--strict", mount / app_name)
+    finally:
+        run("hdiutil", "detach", mount)
 
 
 def read_macos_info(app):
@@ -137,13 +165,15 @@ def build(platform, version, godot):
             "platform": label, "godot": engine_version}, indent=2) + "\n")
         dist = ROOT / "dist"
         dist.mkdir(exist_ok=True)
-        archive = dist / f"{bundle.name}.zip"
+        archive = dist / archive_name(version, platform)
         if platform == "macos":
-            run("ditto", "-c", "-k", "--sequesterRsrc", "--keepParent", bundle, archive)
+            make_dmg(bundle, app_name, archive, stage)
+            # The publishing runner cannot open a disk image, so hand it the build record.
+            shutil.copy2(bundle / "BUILD.json", f"{archive}.json")
         else:
             zip_folder(bundle, archive)
         digest = hashlib.sha256(archive.read_bytes()).hexdigest()
-        archive.with_suffix(".zip.sha256").write_text(f"{digest}  {archive.name}\n")
+        Path(f"{archive}.sha256").write_text(f"{digest}  {archive.name}\n")
         print(f"Packaged and smoke-tested {archive.name}")
     finally:
         project.write_text(original_project)

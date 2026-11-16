@@ -15,7 +15,7 @@ Linux: Extract the entire ZIP, then run ./Purr-and-Tangle. If your extraction
 tool removed executable permission, run chmod +x Purr-and-Tangle first.
 Keep the .pck file beside the executable. An OpenGL 3.3-capable driver is needed.
 
-macOS: Extract the ZIP and move Purr-and-Tangle.app to Applications. The
+macOS: Open the .dmg and drag Purr-and-Tangle.app onto Applications. The
 universal app supports Intel and Apple Silicon. It is ad-hoc signed, not
 Apple-notarized. If macOS blocks the first launch, use System Settings >
 Privacy & Security > Open Anyway after checking the download source.

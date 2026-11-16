@@ -211,14 +211,16 @@ python scripts/export_game.py --platform linux --version v0.1.0 --godot godot
 
 The builder exports the game, launches that packaged executable headlessly
 outside the source directory, and produces a ZIP plus SHA-256 checksum in
-`dist/`. It preserves executable permissions and includes the game license,
+`dist/`. On macOS it produces a disk image (`.dmg`) instead, holding the app
+beside an Applications shortcut for drag-and-drop installing; the build mounts
+the image and re-checks its contents and signature. It preserves executable permissions and includes the game license,
 instructions, source revision and Godot's bundled third-party license notices.
 Source models, reference sprites, tests and screenshots are excluded from the
 playable package; the source repository retains them.
 
 The **Desktop release** Actions workflow builds on all three native runners.
 Dispatch it with an unused `vMAJOR.MINOR.PATCH` version. After tests and all
-exports pass, it creates the tag, uploads three archives plus `SHA256SUMS`,
+exports pass, it creates the tag, uploads the three downloads plus `SHA256SUMS`,
 checks GitHub's uploaded asset digests, then publishes the release. Pushing a
 new version tag also triggers it. Existing tags/releases are never overwritten.
 

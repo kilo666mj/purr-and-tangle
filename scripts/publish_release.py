@@ -8,7 +8,7 @@ from pathlib import Path
 import subprocess
 import zipfile
 
-from export_game import TARGETS, version_number
+from export_game import NOTICES, TARGETS, archive_name, version_number
 
 
 def gh(*args, check=True, payload=None):
@@ -36,25 +36,30 @@ def verify_archives(dist, version, commit):
     version_number(version)
     archives = []
     lines = []
-    for _, label, _ in TARGETS.values():
-        name = f"Purr-and-Tangle-{version}-{label}.zip"
+    for platform, (_, label, _) in TARGETS.items():
+        name = archive_name(version, platform)
         path = dist / name
         digest = hashlib.sha256(path.read_bytes()).hexdigest()
-        expected = path.with_suffix(".zip.sha256").read_text().strip()
+        expected = Path(f"{path}.sha256").read_text().strip()
         if expected != f"{digest}  {name}":
             raise ValueError(f"Checksum mismatch: {name}")
-        with zipfile.ZipFile(path) as archive:
-            if archive.testzip() is not None:
-                raise ValueError(f"Corrupt archive: {name}")
-            info = json.loads(archive.read(f"{path.stem}/BUILD.json"))
-            if info["version"] != version or info["commit"] != commit or info["platform"] != label:
-                raise ValueError(f"Build metadata mismatch: {name}")
-            for notice in ("LICENSE", "PLAYING.txt", "THIRD_PARTY_NOTICES.txt"):
-                if not archive.read(f"{path.stem}/{notice}"):
-                    raise ValueError(f"Missing notice in {name}")
+        if path.suffix == ".dmg":
+            # A disk image cannot be opened here. The macOS build mounted it, checked its
+            # contents and signature, and left its build record beside it.
+            info = json.loads(Path(f"{path}.json").read_text())
+        else:
+            with zipfile.ZipFile(path) as archive:
+                if archive.testzip() is not None:
+                    raise ValueError(f"Corrupt archive: {name}")
+                info = json.loads(archive.read(f"{path.stem}/BUILD.json"))
+                for notice in NOTICES:
+                    if not archive.read(f"{path.stem}/{notice}"):
+                        raise ValueError(f"Missing notice in {name}")
+        if info["version"] != version or info["commit"] != commit or info["platform"] != label:
+            raise ValueError(f"Build metadata mismatch: {name}")
         archives.append(path)
         lines.append(f"{digest}  {name}\n")
-    if set(dist.glob("*.zip")) != set(archives):
+    if set(dist.glob("*.zip")) | set(dist.glob("*.dmg")) != set(archives):
         raise ValueError("Unexpected platform archives")
     checksum_file = dist / "SHA256SUMS"
     checksum_file.write_text("".join(lines))
@@ -77,22 +82,24 @@ def publish(dist, version, commit, repo):
     else:
         raise RuntimeError(tag.stderr.strip())
     notes = dist / "release-notes.md"
-    notes.write_text(f'''Purr & Tangle {version}: a cozy cat-and-yarn puzzle with solo progression,
-local two-player versus, controller support, and three difficulty presets.
+    notes.write_text(f'''Purr & Tangle {version}: a cozy collection of little cat games. The main
+game is a cat-and-yarn puzzle with solo progression, local two-player versus,
+controller support and three difficulty presets, with six smaller arcade-style
+games beside it.
 
-Download and extract the archive for your system:
-- **Windows x64**: run `Purr-and-Tangle.exe` beside its `.pck` file.
-- **Linux x64**: run `./Purr-and-Tangle` beside its `.pck` file.
-- **macOS universal**: move `Purr-and-Tangle.app` to Applications (Intel and Apple Silicon).
+Download the file for your system:
+- **Windows x64**: extract the ZIP and run `Purr-and-Tangle.exe` beside its `.pck` file.
+- **Linux x64**: extract the ZIP and run `./Purr-and-Tangle` beside its `.pck` file.
+- **macOS universal**: open the `.dmg` and drag `Purr-and-Tangle.app` onto Applications (Intel and Apple Silicon).
 
 No engine installation or API keys are needed. Windows is unsigned; macOS is
 ad-hoc signed and not Apple-notarized. If macOS blocks the first launch, use
 System Settings → Privacy & Security → Open Anyway after checking the source.
-Full instructions and license notices are inside each archive.
+Full instructions and license notices are inside each download.
 
-Each package was built and smoke-tested on its native OS. Check downloaded
-archives against `SHA256SUMS` (`sha256sum -c SHA256SUMS` on Linux, or
-`shasum -a 256 -c SHA256SUMS` on macOS, with all three archives present).
+Each package was built and smoke-tested on its native OS. Check downloads
+against `SHA256SUMS` (`sha256sum -c SHA256SUMS` on Linux, or
+`shasum -a 256 -c SHA256SUMS` on macOS, with all three files present).
 
 Source: [{commit[:12]}](https://github.com/{repo}/commit/{commit}). Game license: MIT.
 ''')
@@ -117,7 +124,7 @@ Source: [{commit[:12]}](https://github.com/{repo}/commit/{commit}). Game license
     if os.environ.get("GITHUB_STEP_SUMMARY"):
         with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as summary:
             summary.write(f"[Download Purr & Tangle {version}](https://github.com/{repo}/releases/tag/{version})\n\n")
-            summary.write("Verified all three platform ZIPs and SHA256SUMS against GitHub's uploaded digests.\n")
+            summary.write("Verified all three platform downloads and SHA256SUMS against GitHub's uploaded digests.\n")
 
 
 def main():
