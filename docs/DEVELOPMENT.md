@@ -55,7 +55,7 @@ for a win and a cat tangled in yarn for a loss.
 
 ## Local two-player versus
 
-Choose **Local two-player versus** on the title screen. Press A on each of two
+Choose **Local two-player versus** on the puzzle's start screen. Press A on each of two
 different controllers to join; press Start or select **Start the race** when
 both players are ready. Controller assignments stay fixed for the match, and
 a third controller cannot interfere. B releases a controller's slot in the lobby.
@@ -82,11 +82,15 @@ online play and attacks that send pieces to the other basket are not implemented
 Pausing, losing window focus, or disconnecting an assigned controller freezes
 both baskets, including countdowns and chains. Press A on a replacement
 controller, or choose the missing player's keyboard, before resuming. Returning
-to the main menu ends the match; unfinished baskets are not saved.
+to the main menu ends the match; versus progress is not saved.
+
+Solo progress is saved at the start of each basket (`begin_basket` in
+`main.gd`): the basket number and the score carried into it. Losing keeps it;
+only **Start fresh** resets it. The board itself is never saved.
 
 ## Difficulty and speed
 
-Select a difficulty on the title screen or in the versus lobby. It is remembered
+Select a difficulty on the puzzle's start screen or in the versus lobby. It is remembered
 locally. Both versus players always share the same preset, and it stays fixed
 through level progression and rematches.
 
@@ -130,9 +134,30 @@ rounds and outcomes. `main.gd` and `versus_screen.gd` present the modes using a
 shared `board_view.gd` and `puzzle_art.gd`. Scoring is 100 per yarn and 20 per cat,
 multiplied by chain depth; soft and hard drops add 1 and 2 points per row.
 
-Yarn trail is a separate game hosted by `main.gd`: `trail.gd` holds its
-deterministic rules and `trail_screen.gd` presents it. Each yarn ball scores 10
-and shortens the step interval by 3 ms, from 170 ms down to 80 ms.
+The opening game menu (`show_games` in `main.gd`) shows one card per game, using
+`assets/ui/game_<name>.png`. The side games are hosted by `main.gd` and share `side_screen.gd` for their
+header, steering, pause and result menus. Each adds a deterministic rules script
+and a small screen that draws its board.
+
+- Yarn trail (`trail.gd`, `trail_screen.gd`): each yarn ball scores 10 and
+  shortens the step interval by 3 ms, from 170 ms down to 80 ms.
+- Laser pounce (`pounce.gd`, `pounce_screen.gd`): the dot allows 0.6 s plus
+  320 ms per cell of distance, falling 6 ms per pounce to 140 ms. A pounce
+  scores 10 to 20 depending on the time left.
+- Kitchen dash (`dash.gd`, `dash_screen.gd`): six lanes step every 300 to
+  550 ms, 7% faster per crossing down to 45%. A crossing scores 50. Hazards and
+  the kitten are drawn gliding between cells unless motion is reduced.
+- Kitten match (`match.gd`, `match_screen.gd`): 24 cards, 20 per pair, and 10
+  per unused miss on a win. A mismatch shows for 0.9 s.
+- Treat maze (`maze.gd`, `maze_screen.gd`): the kitten steps every 150 ms and
+  the tangles every 260 ms, 20 ms faster per maze down to 150 ms. A treat
+  scores 10 and a cleared maze 100.
+- Shelf swat (`swat.gd`, `swat_screen.gd`): the ball moves 6.5 cells per
+  second, rising with each item and room to 12. An item scores 10 and a cleared
+  room 100.
+
+To add a side game, write its rules and screen, add a line to `SIDES` in
+`main.gd`, and add `assets/ui/game_<key>.png` for its card.
 
 ## Artwork and rendering
 
@@ -165,9 +190,9 @@ The first command imports resources, checks scripts, exercises deterministic
 rules, difficulty presets, isolated inputs, reconnects, rematches and controller
 menus headlessly, and tests release packaging. The second uses Xvfb/software
 OpenGL to save actual screenshots of solo play, title, versus play, lobby and
-pause, Yarn trail, plus solo and versus results under `artifacts/`. Omit `all` for solo
+pause, every side game, plus solo and versus results under `artifacts/`. Omit `all` for solo
 only, pass `versus` for the three versus screens, `outcomes` for the three
-result screens, or `trail` for Yarn trail. Desktop display access is required for capture.
+result screens, a side game's key such as `trail` or `maze`, or `games` for the opening menu. Desktop display access is required for capture.
 Use `bash scripts/preview.sh yarn` to inspect horizontal and vertical yarn
 connections alongside the versus previews.
 Input tests inject controller events; physical controller feel and sound still

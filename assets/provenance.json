@@ -104,5 +104,77 @@
     ],
     "sha256": "1e9cfacb121d88bde6a561aede0e3338c94cb3c6991e6c4c23c45247b4406495",
     "rendering": "The center half of the strip follows a curved ribbon at paw height, keeping four broad wool twists legible at small sizes."
-  }
+  },
+  "game_cards": [
+    {
+      "name": "game_puzzle",
+      "source_image": "assets/ui/game_puzzle.png",
+      "reference_image": "assets/renders (composited)",
+      "dimensions": [
+        480,
+        360
+      ],
+      "sha256": "5e201d97dff03899dd8e03372f8b051d2a00aa611fd8dd3a14d719dfedfa180d"
+    },
+    {
+      "name": "game_trail",
+      "source_image": "assets/ui/game_trail.png",
+      "reference_image": "assets/renders (composited)",
+      "dimensions": [
+        480,
+        360
+      ],
+      "sha256": "c4700bdd4434a5d707f6d74e9f86c5e68eaf0d388901713e83d7b0f32b081919"
+    },
+    {
+      "name": "game_pounce",
+      "source_image": "assets/ui/game_pounce.png",
+      "reference_image": "assets/renders (composited)",
+      "dimensions": [
+        480,
+        360
+      ],
+      "sha256": "27ec94642470be6f764082f13ab2acbb72a647ed24958041ef7cecbb4e6546a5"
+    },
+    {
+      "name": "game_dash",
+      "source_image": "assets/ui/game_dash.png",
+      "reference_image": "assets/renders (composited)",
+      "dimensions": [
+        480,
+        360
+      ],
+      "sha256": "80301742dc886cfb49e61be7d754be179c847165384593fb79079b5bc5e91c3a"
+    },
+    {
+      "name": "game_match",
+      "source_image": "assets/ui/game_match.png",
+      "reference_image": "assets/renders (composited)",
+      "dimensions": [
+        480,
+        360
+      ],
+      "sha256": "16c35962a3def403005f69936ac3430dd4701539bcefbebe519fe4fbc81a1c28"
+    },
+    {
+      "name": "game_maze",
+      "source_image": "assets/ui/game_maze.png",
+      "reference_image": "assets/renders (composited)",
+      "dimensions": [
+        480,
+        360
+      ],
+      "sha256": "34b9f6250bcbf64f037ddf9f820e1daac5184c9321e060ee53ee7117b0ed2b53"
+    },
+    {
+      "name": "game_swat",
+      "source_image": "assets/ui/game_swat.png",
+      "reference_image": "assets/renders (composited)",
+      "dimensions": [
+        480,
+        360
+      ],
+      "sha256": "bbc7ae8e352b53798b44c56db5a725803a984c9aadf00d11681d24c40da1cc0d"
+    }
+  ]
 }

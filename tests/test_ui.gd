@@ -27,9 +27,21 @@ func run() -> void:
 	var packed: PackedScene = load("res://scenes/main.tscn")
 	var game = packed.instantiate()
 	root.add_child(game)
+	game.saved_level = 1  # Ignore progress left behind by an interrupted earlier run.
 	await process_frame
 	await process_frame
-	expect(game.menu_kind == "title", "Start screen is visible")
+	expect(game.menu_kind == "games", "Game menu is the first screen")
+	var cards: Array = game.menu.find_children("*", "Button", true, false)
+	expect(cards.size() == 7 and cards.all(func(card): return card.icon != null), "Game menu shows a picture card for each game")
+	expect(root.gui_get_focus_owner() == cards[0], "Game menu has controller focus on the first game")
+	expect(game.menu.position.x >= 0 and game.menu.position.x + game.menu.size.x <= 1100 and game.menu.position.y + game.menu.size.y <= 900, "Game menu fits the viewport")
+	joy(JOY_BUTTON_A, true)
+	await process_frame
+	joy(JOY_BUTTON_A, false)
+	await process_frame
+	await process_frame
+	expect(game.menu_kind == "title", "Choosing the puzzle opens its start screen")
+	expect(game.menu.position.x == 293 and game.menu.position.y + game.menu.size.y <= 900, "Start screen is centered and fits the viewport")
 	expect(root.gui_get_focus_owner() is Button, "Start menu has controller focus")
 	joy(JOY_BUTTON_A, true)
 	await process_frame
@@ -104,6 +116,8 @@ func run() -> void:
 	expect(root.gui_get_focus_owner().text == "Next basket", "Outcome art preserves controller focus")
 	game.menu_primary()
 	expect(game.session.board.level == 2 and game.menu_kind.is_empty(), "Next basket continues the run")
+	expect(game.saved_level == 2 and game.saved_score == game.session.board.score, "Reaching a basket saves it")
+	game.session.board.score += 500
 	game.session.board.phase = game.Board.Phase.LOST
 	await process_frame
 	expect(game.menu_kind == "lost", "Blocked board shows game over")
@@ -111,8 +125,28 @@ func run() -> void:
 	var loss_cat: TextureRect = game.menu.find_child("OutcomeCat", true, false)
 	expect(loss_cat != null and loss_cat.texture == game.textures.cat_failure, "Loss menu displays the tangled cat")
 	expect(game.menu.position.y + game.menu.size.y <= 900, "Loss art and controls fit the viewport")
+	expect(root.gui_get_focus_owner().text == "Try basket 2 again", "Loss menu offers the basket that was lost")
 	game.menu_primary()
-	expect(game.session.board.level == 1 and game.session.board.score == 0, "Restart resets run state")
+	expect(game.session.board.level == 2 and game.session.board.score == game.saved_score, "Try again replays the lost basket with the score it began with")
+	game.saved_level = 5
+	game.saved_score = 1234
+	game.save_settings()
+	game.saved_level = 1
+	game.load_settings()
+	expect(game.saved_level == 5 and game.saved_score == 1234, "The saved basket survives a restart")
+	game.show_menu("title")
+	await process_frame
+	await process_frame
+	expect(root.gui_get_focus_owner().text == "Continue from basket 5", "Start screen offers to continue")
+	expect(game.menu.position.y + game.menu.size.y <= 900, "Start screen with a saved basket fits the viewport")
+	game.menu_primary()
+	expect(game.session.board.level == 5 and game.session.board.score == 1234, "Continue resumes the saved basket and score")
+	game.show_menu("pause")
+	game.menu.find_children("*", "Button", true, false).filter(func(button): return button.text == "Restart this basket")[0].pressed.emit()
+	expect(game.session.board.level == 5 and game.session.board.score == 1234 and game.menu_kind.is_empty(), "Restarting a basket keeps the run")
+	game.show_menu("title")
+	game.menu.find_children("*", "Button", true, false).filter(func(button): return button.text.begins_with("Start fresh"))[0].pressed.emit()
+	expect(game.session.board.level == 1 and game.session.board.score == 0 and game.saved_level == 1, "Start fresh resets the run and the saved basket")
 	expect(game.mute_button.position.y + game.mute_button.size.y <= game.motion_button.position.y, "Settings buttons do not overlap")
 	game.muted = false
 	game.play_cat(600.0, 0.5)

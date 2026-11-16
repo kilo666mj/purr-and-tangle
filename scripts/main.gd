@@ -8,22 +8,33 @@ const BoardView = preload("res://scripts/board_view.gd")
 const VersusScreen = preload("res://scripts/versus_screen.gd")
 const Difficulty = preload("res://scripts/difficulty.gd")
 const CatCompanion = preload("res://scripts/cat_companion.gd")
-const TrailScreen = preload("res://scripts/trail_screen.gd")
+# Side games in menu order: key -> [screen script, card title, card blurb].
+const SIDES := {
+	"trail": [preload("res://scripts/trail_screen.gd"), "Yarn trail", "Gather yarn into one long\nstrand. Never cross it."],
+	"pounce": [preload("res://scripts/pounce_screen.gd"), "Laser pounce", "Catch the red dot\nbefore it darts away."],
+	"dash": [preload("res://scripts/dash_screen.gd"), "Kitchen dash", "Cross the kitchen past\nvacuums and rolling yarn."],
+	"match": [preload("res://scripts/match_screen.gd"), "Kitten match", "Flip the cards and\npair up the kittens."],
+	"maze": [preload("res://scripts/maze_screen.gd"), "Treat maze", "Eat every treat while\nthe tangles give chase."],
+	"swat": [preload("res://scripts/swat_screen.gd"), "Shelf swat", "Bat the yarn ball to knock\neverything off the shelves."],
+}
 
 var session := Session.new()
 var board_view := BoardView.new()
 var companion := CatCompanion.new()
 var versus: Control
-var trail: Control
-var trail_best := 0
+var sides := {}  # key -> screen
+var bests := {}  # key -> best score
 var solo_controls: Array = []
 var ui := Control.new()
 var menu := PanelContainer.new()
 var shade := ColorRect.new()
-var menu_kind := "title"
+var menu_kind := "games"
 var muted := false
 var reduced_motion := false
 var high_score := 0
+# The basket reached and the score carried into it; a run resumes from here.
+var saved_level := 1
+var saved_score := 0
 var difficulty := Difficulty.NORMAL
 var sound := AudioStreamPlayer.new()
 var repeat_clock := 0.0
@@ -50,6 +61,8 @@ func _ready() -> void:
 			textures[key] = load(path)
 	for outcome in ["success", "failure", "won"]:
 		textures["cat_" + outcome] = load("res://assets/ui/cat_" + outcome + ".png")
+	for card in ["puzzle"] + SIDES.keys():
+		textures["game_" + card] = load("res://assets/ui/game_" + card + ".png")
 	load_settings()
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--seed="):
@@ -87,11 +100,14 @@ func _ready() -> void:
 	versus.textures = textures
 	versus.hide()
 	ui.add_child(versus)
-	trail = TrailScreen.new()
-	trail.host = self
-	trail.textures = textures
-	trail.hide()
-	ui.add_child(trail)
+	for key in SIDES:
+		var screen: Control = SIDES[key][0].new()
+		sides[key] = screen
+		screen.key = key
+		screen.host = self
+		screen.textures = textures
+		screen.hide()
+		ui.add_child(screen)
 	shade.color = Color(0.08, 0.16, 0.13, 0.65)
 	shade.size = Vector2(1100, 900)
 	shade.mouse_filter = Control.MOUSE_FILTER_STOP
@@ -105,15 +121,15 @@ func _ready() -> void:
 	get_window().focus_exited.connect(func():
 		if versus.visible:
 			versus.pause_for_focus()
-		elif trail.visible:
-			trail.pause_for_focus()
+		elif side_game():
+			side_game().pause_for_focus()
 		elif menu_kind.is_empty():
 			toggle_pause()
 	)
 	session.difficulty = difficulty
 	session.start()
 	companion.reset(session.board)
-	show_menu("title")
+	show_games()
 	resized.connect(update_layout)
 	update_layout()
 	# Deterministic showcase mode used by screenshot validation.
@@ -136,16 +152,15 @@ func _ready() -> void:
 		start_versus()
 	if OS.get_cmdline_user_args().has("--versus-pause"):
 		versus.show_menu("pause")
-	if OS.get_cmdline_user_args().has("--trail-showcase"):
-		start_trail()
-		trail.trail.cells.assign([Vector2i(9, 3), Vector2i(9, 4), Vector2i(9, 5), Vector2i(9, 6), Vector2i(8, 6), Vector2i(7, 6), Vector2i(6, 6), Vector2i(6, 7), Vector2i(6, 8), Vector2i(5, 8)])
-		trail.trail.colors.assign([0, 0, 0, 0, 1, 1, 2, 0, 1, 2])
-		trail.trail.yarn = Vector2i(12, 4)
-		trail.trail.score = 70
-		trail.trail.heading = Vector2i.UP
-		trail.trail.moving = true
-		trail.trail.paused = true
-		trail.set_process(false)
+	if OS.get_cmdline_user_args().has("--title-showcase"):
+		show_menu("title")
+	for key in sides:
+		if OS.get_cmdline_user_args().has("--%s-showcase" % key):
+			start_side(sides[key])
+			sides[key].showcase()
+			sides[key].game.moving = true
+			sides[key].game.paused = true
+			sides[key].set_process(false)
 	for outcome in ["won", "lost"]:
 		if OS.get_cmdline_user_args().has("--" + outcome + "-showcase"):
 			session.board.phase = Board.Phase.WON if outcome == "won" else Board.Phase.LOST
@@ -162,11 +177,13 @@ func capture() -> void:
 	await get_tree().process_frame
 	await RenderingServer.frame_post_draw
 	var shot := get_viewport().get_texture().get_image()
-	var filename := "versus-lobby" if OS.get_cmdline_user_args().has("--versus-lobby") else ("versus" if versus.visible else ("trail" if trail.visible else "gameplay"))
+	var filename: String = "versus-lobby" if OS.get_cmdline_user_args().has("--versus-lobby") else ("versus" if versus.visible else (side_game().key if side_game() else "gameplay"))
 	if OS.get_cmdline_user_args().has("--versus-pause"):
 		filename = "versus-pause"
 	elif OS.get_cmdline_user_args().has("--title-showcase"):
 		filename = "title"
+	elif OS.get_cmdline_user_args().has("--games-showcase"):
+		filename = "games"
 	for outcome in ["won", "lost"]:
 		if OS.get_cmdline_user_args().has("--" + outcome + "-showcase"):
 			filename = outcome
@@ -228,6 +245,33 @@ func make_label(text: String, font_size: int, parent: Node) -> Label:
 	return label
 
 
+func show_games() -> void:
+	show_menu("games")
+	var column: VBoxContainer = menu.get_child(0)
+	make_label("PURR & TANGLE", 15, column)
+	make_label("Pick a little game", 27, column)
+	var grid := GridContainer.new()
+	grid.columns = 4
+	grid.add_theme_constant_override("h_separation", 16)
+	grid.add_theme_constant_override("v_separation", 16)
+	column.add_child(grid)
+	var cards := [["puzzle", "Purr & Tangle", "Match four, rescue the kittens.\nSolo or two-player versus.", show_menu.bind("title")]]
+	for key in SIDES:
+		cards.append([key, SIDES[key][1], SIDES[key][2], start_side.bind(sides[key])])
+	for card in cards:
+		var button := make_button("%s\n%s" % [card[1], card[2]], Vector2.ZERO, Vector2(236, 232), card[3], grid)
+		button.name = card[0]
+		button.add_theme_font_size_override("font_size", 15)
+		button.icon = textures["game_" + card[0]]
+		button.expand_icon = true
+		button.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		button.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
+	make_label("Arrows / stick  choose    Enter / A  play", 15, column)
+	menu.position = Vector2(46, 120)
+	menu.size = Vector2(1008, 0)
+	focus_primary.call_deferred()
+
+
 func show_menu(kind: String) -> void:
 	menu_kind = kind
 	session.paused = true
@@ -241,9 +285,11 @@ func show_menu(kind: String) -> void:
 	var column := VBoxContainer.new()
 	column.add_theme_constant_override("separation", 16)
 	menu.add_child(column)
+	if kind == "games":
+		return
 	var heading := "A little tangle. A lot of purr."
 	var copy := "Pair up the cats. Match 4 of one color\nin a straight line to rescue the kittens.\nClear every yarn ball to finish the basket."
-	var cta := "Let’s untangle"
+	var cta := "Let’s untangle" if saved_level == 1 else "Continue from basket %d" % saved_level
 	if kind == "pause":
 		heading = "Taking a catnap"
 		copy = "Your basket can wait.\nPieces and chain reactions are paused."
@@ -255,7 +301,7 @@ func show_menu(kind: String) -> void:
 	elif kind == "lost":
 		heading = "A very full basket"
 		copy = "No room for the next pair.\nYou reached basket %d with %s points." % [session.board.level, format_score(session.board.score)]
-		cta = "Try again"
+		cta = "Try again" if saved_level == 1 else "Try basket %d again" % saved_level
 	make_label("PURR & TANGLE", 15, column)
 	make_label(heading, 27, column)
 	if kind in ["won", "lost"]:
@@ -263,8 +309,10 @@ func show_menu(kind: String) -> void:
 	make_label(copy, 18, column)
 	make_button(cta, Vector2.ZERO, Vector2(450, 49), menu_primary, column)
 	if kind == "title":
+		if saved_level > 1:
+			make_button("Start fresh from basket 1", Vector2.ZERO, Vector2(450, 42), start_game, column)
 		make_button("Local two-player versus", Vector2.ZERO, Vector2(450, 46), start_versus, column)
-		make_button("Yarn trail · a little side game", Vector2.ZERO, Vector2(450, 46), start_trail, column)
+		make_button("All games", Vector2.ZERO, Vector2(450, 40), show_games, column)
 		var difficulty_button := make_button(difficulty_label(), Vector2.ZERO, Vector2(450, 42), cycle_difficulty, column)
 		var difficulty_copy := make_label(Difficulty.DESCRIPTIONS[difficulty], 15, column)
 		difficulty_button.pressed.connect(func():
@@ -272,7 +320,7 @@ func show_menu(kind: String) -> void:
 			difficulty_copy.text = Difficulty.DESCRIPTIONS[difficulty]
 		)
 	if kind == "pause":
-		make_button("Restart this run", Vector2.ZERO, Vector2(450, 44), start_game, column)
+		make_button("Restart this basket", Vector2.ZERO, Vector2(450, 44), continue_game, column)
 		var sound_option := make_button(mute_button.text, Vector2.ZERO, Vector2(450, 40), toggle_mute, column)
 		sound_option.pressed.connect(func(): sound_option.text = mute_button.text)
 		var motion_option := make_button(motion_button.text, Vector2.ZERO, Vector2(450, 40), toggle_motion, column)
@@ -294,7 +342,7 @@ func show_menu(kind: String) -> void:
 		button.focus_neighbor_bottom = button.get_path_to(options[(i + 1) % options.size()])
 		button.focus_next = button.focus_neighbor_bottom
 		button.focus_previous = button.focus_neighbor_top
-	menu.position.y = 65 if kind == "pause" or kind in ["won", "lost"] else 160
+	menu.position = Vector2(293, 65 if kind == "pause" or kind in ["won", "lost"] else 160)
 	menu.size = Vector2(514, 450)
 	focus_primary.call_deferred()
 	queue_redraw()
@@ -302,18 +350,25 @@ func show_menu(kind: String) -> void:
 
 func menu_primary() -> void:
 	match menu_kind:
-		"title", "lost": start_game()
+		"title", "lost": continue_game()
 		"pause": resume_game()
-		"won":
-			session.start(session.board.level + 1, session.board.score)
-			board_view.reset()
-			companion.reset(session.board)
-			resume_game()
+		"won": begin_basket(session.board.level + 1, session.board.score)
 
 
 func start_game() -> void:
+	begin_basket(1, 0)
+
+
+func continue_game() -> void:
+	begin_basket(saved_level, saved_score)
+
+
+func begin_basket(level: int, carried_score: int) -> void:
+	saved_level = level
+	saved_score = carried_score
+	save_settings()
 	session.difficulty = difficulty
-	session.start()
+	session.start(level, carried_score)
 	board_view.reset()
 	companion.reset(session.board)
 	resume_game()
@@ -351,16 +406,16 @@ func controller_changed(device: int, connected: bool) -> void:
 	if versus.visible:
 		versus.controller_changed(device, connected)
 		return
-	if trail.visible:
+	if side_game():
 		if not connected:
-			trail.pause_for_focus()
+			side_game().pause_for_focus()
 		return
 	if not connected and menu_kind.is_empty():
 		show_menu("pause")
 
 
 func _input(event: InputEvent) -> void:
-	if versus.visible or trail.visible:
+	if versus.visible or side_game():
 		return
 	if event is InputEventJoypadButton or event is InputEventJoypadMotion:
 		controller = true
@@ -377,7 +432,7 @@ func _input(event: InputEvent) -> void:
 
 
 func _process(delta: float) -> void:
-	if versus.visible or trail.visible:
+	if versus.visible or side_game():
 		return
 	board_view.reduced_motion = reduced_motion
 	board_view.show_patterns = show_patterns
@@ -422,7 +477,7 @@ func _process(delta: float) -> void:
 
 func _draw() -> void:
 	draw_rect(Rect2(Vector2.ZERO, size), Color("e4e6d7"))
-	if versus.visible or trail.visible:
+	if versus.visible or side_game():
 		return
 	draw_set_transform(ui_offset, 0.0, Vector2.ONE * ui_scale)
 	draw_rect(Rect2(0, 0, 1100, 900), CREAM)
@@ -491,13 +546,18 @@ func update_settings_labels() -> void:
 
 
 func load_settings() -> void:
+	for key in SIDES:
+		bests[key] = 0
 	var config := ConfigFile.new()
 	if config.load("user://settings.cfg") == OK:
 		muted = config.get_value("accessibility", "muted", false)
 		reduced_motion = config.get_value("accessibility", "reduced_motion", false)
 		show_patterns = config.get_value("accessibility", "patterns", true)
 		high_score = config.get_value("game", "best", 0)
-		trail_best = config.get_value("game", "trail_best", 0)
+		saved_level = maxi(1, int(config.get_value("game", "basket", 1)))
+		saved_score = maxi(0, int(config.get_value("game", "basket_score", 0)))
+		for key in SIDES:
+			bests[key] = config.get_value("game", key + "_best", 0)
 		difficulty = Difficulty.valid(int(config.get_value("game", "difficulty", Difficulty.NORMAL)))
 
 
@@ -507,7 +567,10 @@ func save_settings() -> void:
 	config.set_value("accessibility", "reduced_motion", reduced_motion)
 	config.set_value("accessibility", "patterns", show_patterns)
 	config.set_value("game", "best", high_score)
-	config.set_value("game", "trail_best", trail_best)
+	config.set_value("game", "basket", saved_level)
+	config.set_value("game", "basket_score", saved_score)
+	for key in bests:
+		config.set_value("game", key + "_best", bests[key])
 	config.set_value("game", "difficulty", difficulty)
 	if config.save("user://settings.cfg") != OK:
 		push_warning("Settings could not be saved")
@@ -551,25 +614,33 @@ func start_versus() -> void:
 	queue_redraw()
 
 
-func start_trail() -> void:
+func side_game() -> Control:
+	for screen in sides.values():
+		if screen.visible:
+			return screen
+	return null
+
+
+func start_side(screen: Control) -> void:
 	session.paused = true
-	menu_kind = "trail"
+	menu_kind = "side"
 	menu.hide()
 	shade.hide()
 	for control in solo_controls:
 		control.hide()
-	trail.show()
-	trail.open(session.run_seed)
+	screen.show()
+	screen.open(session.run_seed)
 	queue_redraw()
 
 
 func return_to_title() -> void:
 	versus.hide()
-	trail.hide()
+	for screen in sides.values():
+		screen.hide()
 	versus.match_state.set_paused(true)
 	for control in solo_controls:
 		control.show()
-	show_menu("title")
+	show_games()
 
 
 func difficulty_label() -> String:
@@ -588,8 +659,8 @@ func cycle_difficulty() -> void:
 
 func focus_primary() -> void:
 	# Rebuilding a menu twice in one frame must not focus a removed button.
-	if menu.visible and menu.get_child_count() > 0:
-		for child in menu.get_child(0).get_children():
-			if child is Button and not child.disabled:
-				child.grab_focus()
+	if menu.visible:
+		for button in menu.find_children("*", "Button", true, false):
+			if not button.disabled:
+				button.grab_focus()
 				return
