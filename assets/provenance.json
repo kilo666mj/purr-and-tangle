@@ -84,6 +84,16 @@
         1254
       ],
       "sha256": "d22a4d07f68b599ebe5e1a6b7b5d8d04b43007e0accbac413e06c3c82918843b"
+    },
+    {
+      "name": "cat_won",
+      "source_image": "assets/ui/cat_won.png",
+      "reference_image": "assets/renders/cat_orange.png, cat_blue.png, cat_purple.png (composited)",
+      "dimensions": [
+        768,
+        768
+      ],
+      "sha256": "de64499c7008819e1b0cd4fee3eb3315e782b50812e6d8495bb15fab012c05b7"
     }
   ],
   "yarn_connector": {

@@ -79,7 +79,7 @@ func draw_yarn_link(first: Vector2, second: Vector2, piece_size: float = 40.0) -
 func add_outcome_art(parent: Node, outcome: String, height: float = 190.0) -> TextureRect:
 	var picture := TextureRect.new()
 	picture.name = "OutcomeCat"
-	picture.texture = textures["cat_success" if outcome == "won" else "cat_failure"]
+	picture.texture = textures["cat_won" if outcome == "won" else "cat_failure"]
 	picture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	picture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	picture.custom_minimum_size = Vector2(0, height)

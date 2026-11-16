@@ -257,9 +257,9 @@ func _process(delta: float) -> void:
 			views[i].animate(delta, before[i])
 			var after: int = match_state.players[i].board.phase
 			if before[i] == Board.Phase.CLEARING and after == Board.Phase.GRAVITY:
-				host.play_tone(620.0 + i * 160.0, 0.12)
+				host.play_cat(620.0 + i * 160.0, 0.3)
 			elif before[i] == Board.Phase.PLAYING and after != Board.Phase.PLAYING:
-				host.play_tone(220.0 + i * 50.0, 0.045)
+				host.play_cat(110.0 + i * 25.0, 0.12, true)
 		if match_state.result != MatchState.Result.PLAYING:
 			show_menu("result")
 	for view in views:

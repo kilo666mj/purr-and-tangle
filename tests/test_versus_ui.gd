@@ -119,7 +119,7 @@ func run() -> void:
 	var cats: Array = screen.modal.find_children("OutcomeCat", "TextureRect", true, false)
 	expect(cats.size() == 2, "Versus result includes a cat for both players")
 	if cats.size() == 2:
-		expect(cats[0].texture == game.textures.cat_success and cats[1].texture == game.textures.cat_failure, "Versus winner celebrates while the other cat is tangled")
+		expect(cats[0].texture == game.textures.cat_won and cats[1].texture == game.textures.cat_failure, "Versus winner celebrates while the other cat is tangled")
 	expect(screen.modal.position.y + screen.modal.size.y <= 900, "Versus result art and controls fit the viewport")
 	await tap(5, JOY_BUTTON_A)
 	expect(screen.mode.is_empty() and screen.match_state.round_number == 2 and screen.match_state.wins == [1, 0], "Controller can rematch with wins preserved")
