@@ -3,6 +3,7 @@ import json
 import os
 import plistlib
 from pathlib import Path
+import shutil
 import stat
 import sys
 import tempfile
@@ -13,7 +14,7 @@ import zipfile
 from xml.parsers.expat import ExpatError
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
-from export_game import TARGETS, read_macos_info, resolve_godot, version_number, zip_folder
+from export_game import TARGETS, archive_name, make_dmg, read_macos_info, resolve_godot, version_number, zip_folder
 from publish_release import publish, verify_archives
 
 
@@ -77,10 +78,17 @@ class ReleaseTest(unittest.TestCase):
                 version_number(value)
 
     def make_archives(self, root):
-        for _, label, _ in TARGETS.values():
+        for platform, (_, label, _) in TARGETS.items():
             folder = root / f"Purr-and-Tangle-v0.1.0-{label}"
             folder.mkdir()
             (folder / "BUILD.json").write_text(json.dumps({"version": "v0.1.0", "platform": label, "commit": "a" * 40}))
+            if platform == "macos":
+                # A stand-in image: only macOS can build or open a real one.
+                archive = root / archive_name("v0.1.0", platform)
+                archive.write_bytes(b"disk image content")
+                shutil.copy2(folder / "BUILD.json", f"{archive}.json")
+                Path(f"{archive}.sha256").write_text(f"{hashlib.sha256(archive.read_bytes()).hexdigest()}  {archive.name}\n")
+                continue
             for name in ("LICENSE", "PLAYING.txt", "THIRD_PARTY_NOTICES.txt"):
                 (folder / name).write_text("included notice")
             binary = folder / "game"
@@ -96,6 +104,7 @@ class ReleaseTest(unittest.TestCase):
             self.make_archives(root)
             assets = verify_archives(root, "v0.1.0", "a" * 40)
             self.assertEqual(len(assets), 4)
+            self.assertEqual([path.suffix for path in assets[:3]], [".zip", ".zip", ".dmg"])
             self.assertEqual(len((root / "SHA256SUMS").read_text().splitlines()), 3)
             with zipfile.ZipFile(assets[0]) as archive:
                 mode = archive.getinfo(assets[0].stem + "/game").external_attr >> 16
@@ -116,6 +125,46 @@ class ReleaseTest(unittest.TestCase):
                 stream.write(b"tampered")
             with self.assertRaisesRegex(ValueError, "Checksum mismatch"):
                 verify_archives(root, "v0.1.0", "a" * 40)
+
+    def test_refuses_disk_image_from_different_source_or_unexpected_downloads(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.make_archives(root)
+            record = next(root.glob("*.dmg.json"))
+            record.write_text(record.read_text().replace("a" * 40, "b" * 40))
+            with self.assertRaisesRegex(ValueError, "metadata mismatch: .*dmg"):
+                verify_archives(root, "v0.1.0", "a" * 40)
+            record.write_text(record.read_text().replace("b" * 40, "a" * 40))
+            (root / "Extra.dmg").write_bytes(b"unexpected")
+            with self.assertRaisesRegex(ValueError, "Unexpected"):
+                verify_archives(root, "v0.1.0", "a" * 40)
+
+    @unittest.skipIf(sys.platform == "win32", "symbolic links need extra privileges on Windows")
+    def test_disk_image_gets_applications_shortcut_and_is_checked_mounted(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            bundle = root / "bundle"
+            (bundle / "Game.app").mkdir(parents=True)
+            for name in ("LICENSE", "PLAYING.txt", "THIRD_PARTY_NOTICES.txt", "BUILD.json"):
+                (bundle / name).write_text("included")
+            calls = []
+            def fake_run(*args, cwd=None):
+                calls.append([str(arg) for arg in args])
+                if args[1] == "attach":
+                    # Stand in for mounting: the volume holds what the bundle held.
+                    shutil.copytree(bundle, args[-1], symlinks=True, dirs_exist_ok=True)
+                return ""
+            with patch("export_game.run", side_effect=fake_run):
+                make_dmg(bundle, "Game.app", root / "game.dmg", root)
+                self.assertEqual(os.readlink(bundle / "Applications"), "/Applications")
+                self.assertEqual([call[1] for call in calls if call[0] == "hdiutil"], ["create", "verify", "attach", "detach"])
+                self.assertIn(str(root / "mounted" / "Game.app"), calls[-2])
+                (bundle / "LICENSE").unlink()
+                (bundle / "Applications").unlink()
+                shutil.rmtree(root / "mounted")
+                with self.assertRaisesRegex(RuntimeError, "missing LICENSE"):
+                    make_dmg(bundle, "Game.app", root / "game.dmg", root)
+                self.assertEqual(calls[-1][:2], ["hdiutil", "detach"])
 
     def test_refuses_incomplete_release(self):
         with tempfile.TemporaryDirectory() as directory:

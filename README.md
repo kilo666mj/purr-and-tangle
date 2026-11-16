@@ -7,7 +7,8 @@ games sit beside it on the opening menu.
 
 **[Download the latest release](https://github.com/kilo666mj/purr-and-tangle/releases/latest)**
 — Windows and Linux (x64), macOS (Intel + Apple Silicon).
-Extract the entire archive and open the game. Godot, Blender and API keys are
+On Windows and Linux, extract the entire ZIP and open the game; on macOS, open
+the disk image and drag the app onto Applications. Godot, Blender and API keys are
 not needed to play. See the included `PLAYING.txt` for platform instructions;
 Windows builds are unsigned and macOS builds are not Apple-notarized.
 
