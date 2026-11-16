@@ -130,6 +130,10 @@ rounds and outcomes. `main.gd` and `versus_screen.gd` present the modes using a
 shared `board_view.gd` and `puzzle_art.gd`. Scoring is 100 per yarn and 20 per cat,
 multiplied by chain depth; soft and hard drops add 1 and 2 points per row.
 
+Yarn trail is a separate game hosted by `main.gd`: `trail.gd` holds its
+deterministic rules and `trail_screen.gd` presents it. Each yarn ball scores 10
+and shortens the step interval by 3 ms, from 170 ms down to 80 ms.
+
 ## Artwork and rendering
 
 Six transparent source images live in `assets/sprites/`, with textured GLB
@@ -161,9 +165,9 @@ The first command imports resources, checks scripts, exercises deterministic
 rules, difficulty presets, isolated inputs, reconnects, rematches and controller
 menus headlessly, and tests release packaging. The second uses Xvfb/software
 OpenGL to save actual screenshots of solo play, title, versus play, lobby and
-pause, plus solo and versus results under `artifacts/`. Omit `all` for solo
-only, pass `versus` for the three versus screens, or `outcomes` for the three
-result screens. Desktop display access is required for capture.
+pause, Yarn trail, plus solo and versus results under `artifacts/`. Omit `all` for solo
+only, pass `versus` for the three versus screens, `outcomes` for the three
+result screens, or `trail` for Yarn trail. Desktop display access is required for capture.
 Use `bash scripts/preview.sh yarn` to inspect horizontal and vertical yarn
 connections alongside the versus previews.
 Input tests inject controller events; physical controller feel and sound still

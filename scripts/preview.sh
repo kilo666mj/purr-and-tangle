@@ -28,7 +28,9 @@ case "${1:-solo}" in
     capture --lost-showcase
     capture --versus-showcase --versus-result
     ;;
+  trail) capture --trail-showcase ;;
   all)
+    capture --trail-showcase
     capture --showcase
     capture --showcase --vertical-pair
     capture --title-showcase
@@ -39,6 +41,6 @@ case "${1:-solo}" in
     capture --lost-showcase
     capture --versus-showcase --versus-result
     ;;
-  *) printf 'Usage: bash scripts/preview.sh [solo|versus|outcomes|yarn|all]\n' >&2; exit 2 ;;
+  *) printf 'Usage: bash scripts/preview.sh [solo|versus|outcomes|yarn|trail|all]\n' >&2; exit 2 ;;
 esac
 printf 'Screenshots saved under artifacts/\n'
